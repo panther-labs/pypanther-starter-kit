@@ -9,6 +9,7 @@ fmt:
 
 lint:
 	poetry run ruff check .
+	poetry run mypy .
 
 upload:
 	poetry run pypanther upload

@@ -1,8 +1,6 @@
 # Built-in box_new_login.py rule example
 
-from pypanther import PantherRuleTest
-from pypanther.base import PantherRule, PantherSeverity
-from pypanther.log_types import LogType
+from pypanther import PantherLogType, PantherRule, PantherRuleTest, PantherSeverity
 
 box_new_login_tests = [
     PantherRuleTest(
@@ -16,7 +14,7 @@ box_new_login_tests = [
 class BoxNewLogin(PantherRule):
     RuleID = "Box.New.Login-prototype"
     DisplayName = "Box New Login"
-    LogTypes = [LogType.Box_Event]
+    LogTypes = [PantherLogType.Box_Event]
     Tags = ["Box", "Initial Access:Valid Accounts"]
     Reports = {"MITRE ATT&CK": ["TA0001:T1078"]}
     Severity = PantherSeverity.Info
