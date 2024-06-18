@@ -18,4 +18,4 @@ jobs:
         poetry install
     - name: test
       run: |
-        poetry run pytest --doctest-modules --junitxml=junit/test-results.xml
+        poetry run pytest ./tests

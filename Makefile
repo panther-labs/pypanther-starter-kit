@@ -1,5 +1,5 @@
 test:
-	poetry run pytest .
+	poetry run pytest ./tests
 
 pypanther-test:
 	poetry run pypanther test
