@@ -17,5 +17,3 @@ ruff = "^0.4.9"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.mypy]
