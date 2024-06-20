@@ -1,7 +1,7 @@
-test:
+pytest:
 	poetry run pytest ./tests
 
-pypanther-test:
+test:
 	poetry run pypanther test
 
 fmt:

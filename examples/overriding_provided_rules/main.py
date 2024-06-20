@@ -59,6 +59,6 @@ for rule in rules:
     if PantherLogType.AWS_CloudTrail in rule.LogTypes:
         rule.destinations = cloudtrail_destinations
 
-    # monkey patching methods (what does monkey patching mean)
+    # monkey patching methods
     original_title = rule.title
     rule.title = lambda _, event: original_title(_, event) + "_Production"
