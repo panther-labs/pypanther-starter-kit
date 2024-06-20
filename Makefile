@@ -1,6 +1,3 @@
-pytest:
-	poetry run pytest ./tests
-
 test:
 	poetry run pypanther test
 
