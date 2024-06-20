@@ -30,9 +30,7 @@ AWSCloudTrailStopped.override(
     Reports=AWSCloudTrailStopped.Reports | {"reporting": ["for", "duty", "sir"]},
 )
 
-for rule in get_panther_rules(
-    LogTypes=onboarded_log_types, Severity=PantherSeverity.Critical
-):
+for rule in get_panther_rules(LogTypes=onboarded_log_types, Severity=PantherSeverity.Critical):
     rule.OutputIds.append("Slack #security")
 
 ########################################################

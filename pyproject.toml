@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "3.11.*"
-pypanther = "^0.1.1a26"
+pypanther = "^0.1.1a27"
 panther-core = "^0.11.1"
 
 [tool.poetry.group.dev.dependencies]
@@ -17,3 +17,6 @@ ruff = "^0.4.9"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
