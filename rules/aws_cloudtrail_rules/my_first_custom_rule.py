@@ -1,6 +1,8 @@
 from pypanther import PantherLogType, PantherRule, PantherRuleTest, PantherSeverity
 from pypanther.base import PantherEvent
 
+from rules.custom_log_type import CustomLogType
+
 tests = [
     PantherRuleTest(
         Name="should be false",
@@ -12,7 +14,7 @@ tests = [
 
 class MyFirstCustomRule(PantherRule):
     RuleID = "MyFirstCustomRule"
-    LogTypes = [PantherLogType.AWS_CloudTrail]
+    LogTypes = [PantherLogType.AWS_CloudTrail, CustomLogType.MyLogType]
     Severity = PantherSeverity.Low
     Tests = tests
 
