@@ -29,7 +29,7 @@ AWSCloudTrailStopped.override(
 )
 
 for rule in get_panther_rules(LogTypes=onboarded_log_types, Severity=PantherSeverity.Critical):
-    rule.OutputIds.append("Slack #security")
+    rule.Tags.append("Critical")
 
 ########################################################
 ## Filters
