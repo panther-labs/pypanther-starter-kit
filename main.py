@@ -17,6 +17,12 @@ onboarded_log_types = [
     PantherLogType.AWS_CloudTrail,
 ]
 
+AWS_ACCOUNTS = {
+    "prod": [
+        {"accountID": "123456789012", "accountName": "MyProdAccount"},
+    ]
+}
+
 ########################################################
 ## Overrides
 
@@ -33,6 +39,11 @@ for rule in get_panther_rules(LogTypes=onboarded_log_types, Severity=PantherSeve
 
 ########################################################
 ## Filters
+
+def is_prod_account(event):
+    return event.get("accountID") in ["123456789012"]
+
+include(is_prod_account)(AWSCloudTrailStopped)
 
 include(lambda e: e.get("eventType") == "AwsConsoleSignIn")(AWSConsoleLoginWithoutSAML)
 exclude(lambda e: e.get("awsRegion") == "us-east-2")(AWSConsoleLoginWithoutMFA)
