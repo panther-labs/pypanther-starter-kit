@@ -18,17 +18,20 @@ from helpers.cloud import prod_account_ids, account_lookup_by_id, update_account
 ## Calling without arguments returns everything and passing attributes
 ## like LogTypes, Severity, or Tags filters rules matching the values.
 
+# Note: Replace with your onboarded log types
 onboarded_log_types = [
-    # Replace with your onboarded log types
     PantherLogType.AWS_CloudTrail,
     PantherLogType.AWS_GuardDuty,
     PantherLogType.Okta_SystemLog,
 ]
 
-# Get Panther built-in rules for onboarded log types
+# Get Panther-managed rules for onboarded log types
 base_rules = get_panther_rules(LogTypes=onboarded_log_types)
 
-## Get Panther-managed rules with certain severities
+## Gets all Panther-managed Rules
+# all_rules = get_panther_rules()
+
+## Get Panther-managed rules for specific severities
 # high_sev_rules = get_panther_rules(
 #     LogTypes=onboarded_log_types,
 #     Severity=[
@@ -37,30 +40,37 @@ base_rules = get_panther_rules(LogTypes=onboarded_log_types)
 #     ],
 # )
 
-## Get all Panther-managed Rules
-# all_rules = get_panther_rules()
-
 
 ########################################################
-## Filter/Dynamic Functions
+## Filters and Dynamic Functions
 ##
-## Add filters to include/exclude events from being evaluated by rules.
+## Filters include/exclude events from being evaluated by rules.
+## Dynamic functions generate alert values based on event data.
 
 
 def prod_account(event):
+    '''
+    Uses CloudTrail events to check if an account ID is in the list of production accounts.
+    This uses a variable from the helpers/cloud module.
+    '''
     # TODO() Change this to use event.udm('account_id')
     return event.get("recipientAccountId") in prod_account_ids
 
 
 sensitive_services = {"s3", "dynamodb", "iam", "secretsmanager", "ec2"}
-
-
 def guard_duty_sensitive_service(event):
+    '''Uses GuardDuty findings to check if the event is for a sensitive service.'''
     service_name = event.deep_get("service", "action", "awsApiCallAction", "serviceName")
     return any(service_name.startswith(service) for service in sensitive_services)
 
 
 def root_login_account(_, event):
+    '''
+    Generates a dynamic alert title for root logins using account mappings.
+    Args:
+        _ (self): The PantherRule instance (unused)
+        event (dict): The CloudTrail event
+    '''
     ip_address = event.get("sourceIPAddress")
     account = account_lookup_by_id(event.get("recipientAccountId"))
     return f"Root Login from [{ip_address}] in account [{account}]"
@@ -69,17 +79,18 @@ def root_login_account(_, event):
 ########################################################
 ## Overrides
 ##
-## Apply your custom configurations to Panther-managed rules.
-## This can include single or multiple attributes and filters.
+## Apply your internal configurations to Panther-managed rules.
+## This can include single attributes, multiple attributes, or filters.
 
-# Override a single attribute
+# Override a single rule's severity to Low
 AWSCloudTrailAccountDiscovery.Severity = PantherSeverity.Low
 
-# Override a set of rule attributes and attach a filter
+# Override a set of rule attributes and attach the 'prod_account' filter from above
 include(prod_account)(AWSCloudTrailStopped)
-# TODO() Update this temporary workaround
+# TODO(panther) This is a temproary workaround for updating AWS account IDs in rule tests
 update_account_id_tests([AWSCloudTrailStopped])
-# Override multiple atributes at once
+
+# Override multiple atributes using the rule override() method
 AWSCloudTrailStopped.override(
     Runbook=(
         "If the account is in production, investigate why CloudTrail was stopped. "
@@ -89,7 +100,8 @@ AWSCloudTrailStopped.override(
     Reports=AWSCloudTrailStopped.Reports | {"Internal": ["C.4"]},
 )
 
-# Override a title function to match internal naming conventions
+# Override a title dynamic function to match internal cloud account account mappings
+# Check out helpers/cloud.py for the account_lookup_by_id function
 AWSConsoleRootLogin.title = root_login_account
 
 # Add two filters to all GuardDuty rules
