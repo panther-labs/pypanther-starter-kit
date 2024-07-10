@@ -12,6 +12,9 @@ Before you begin, make sure you have the following installed:
 - Git
 - Make
 - Python (check the `pyproject.toml` file for the required version)
+- Poetry
+
+Ensure that Poetry is using the correct version of Python by running `poetry env use path/to/python3.11`
 
 ### Installation
 
