@@ -6,8 +6,8 @@ from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_account_discovery impor
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_stopped import AWSCloudTrailStopped
 from pypanther.rules.aws_cloudtrail_rules.aws_console_root_login import AWSConsoleRootLogin
 
-from rules.aws_rules.alb_high_400s import AWSALBHighVol400s
-from rules.custom_logs.ids_rules import HostIDSBaseRule, HostIDSMalware
+from rules.aws_alb_rules.alb_high_400s import AWSALBHighVol400s
+from rules.custom_log_type.ids_rules import HostIDSBaseRule, HostIDSMalware
 from helpers.cloud import prod_account_ids, account_lookup_by_id, update_account_id_tests
 
 
