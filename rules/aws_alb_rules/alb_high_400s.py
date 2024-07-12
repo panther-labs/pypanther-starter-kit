@@ -1,6 +1,6 @@
 from typing import Dict
 from pypanther import PantherRule, PantherSeverity, PantherLogType, PantherRuleTest
-from rules.aws_rules.sample_logs import sample_alb_log
+from rules.aws_alb_rules.sample_logs import sample_alb_log
 
 
 class AWSALBHighVol400s(PantherRule):
