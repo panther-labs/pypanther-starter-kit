@@ -1,3 +1,5 @@
+from pypanther import PantherEvent
+
 # The mapping of Cloud account environments, IDs, and names.
 CLOUD_ACCOUNTS = {
     "Production": [
@@ -41,3 +43,16 @@ def update_account_id_tests(rules):
 prod_account_ids = {account["accountID"] for account in CLOUD_ACCOUNTS["Production"]}
 dev_accounts_ids = {account["accountID"] for account in CLOUD_ACCOUNTS["Development"]}
 test_accounts_ids = {account["accountID"] for account in CLOUD_ACCOUNTS["Test"]}
+
+# Title function overrides
+
+def title_root_logins(_, event: PantherEvent):
+    '''
+    Generates a dynamic alert title for root logins using account mappings.
+    Args:
+        _ (self): The PantherRule instance (unused)
+        event (dict): The CloudTrail event
+    '''
+    ip_address = event.get("sourceIPAddress")
+    account = account_lookup_by_id(event.get("recipientAccountId"))
+    return f"Root Login from [{ip_address}] in account [{account}]"

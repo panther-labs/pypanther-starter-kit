@@ -2,11 +2,14 @@ from pypanther import PantherSeverity, register, get_panther_rules, PantherLogTy
 
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_account_discovery import AWSCloudTrailAccountDiscovery
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_stopped import AWSCloudTrailStopped
+from pypanther.rules.aws_cloudtrail_rules.aws_console_root_login import AWSConsoleRootLogin
 
-# Set severity to low
+from helpers.cloud import title_root_logins
+
+# Set AccountDiscovery severity to low
 AWSCloudTrailAccountDiscovery.Severity = PantherSeverity.Low
 
-# Add custom runbook and reports
+# Add custom runbook and reports to CloudTrail stopped
 AWSCloudTrailStopped.override(
     Runbook=(
         "If the account is in production, investigate why CloudTrail was stopped. "
@@ -16,7 +19,12 @@ AWSCloudTrailStopped.override(
     Reports=AWSCloudTrailStopped.Reports | {"Internal": ["C.4"]},
 )
 
-high_sev_cloudtrail = get_panther_rules(PantherLogType.AWS_CloudTrail, Severity=PantherSeverity.High)
+# Get all high severity CloudTrail rules
+high_sev_cloudtrail = get_panther_rules(PantherLogType.AWS_CloudTrail)
+
+# Override a title dynamic function to match internal cloud account account mappings
+# Check out helpers/cloud.py for the account_lookup_by_id function
+AWSConsoleRootLogin.title = title_root_logins
 
 register(
     [

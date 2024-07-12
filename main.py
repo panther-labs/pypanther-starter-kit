@@ -2,7 +2,6 @@ from pypanther import PantherLogType, PantherSeverity, get_panther_rules, regist
 from pypanther.wrap import exclude, include
 from pypanther.get import table_print
 
-from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_account_discovery import AWSCloudTrailAccountDiscovery
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_stopped import AWSCloudTrailStopped
 from pypanther.rules.aws_cloudtrail_rules.aws_console_root_login import AWSConsoleRootLogin
 
@@ -20,7 +19,6 @@ from helpers.cloud import prod_account_ids, account_lookup_by_id, update_account
 
 # Note: Replace with your onboarded log types
 onboarded_log_types = [
-    PantherLogType.AWS_CloudTrail,
     PantherLogType.AWS_GuardDuty,
     PantherLogType.Okta_SystemLog,
 ]
@@ -64,45 +62,16 @@ def guard_duty_sensitive_service(event):
     return any(service_name.startswith(service) for service in sensitive_services)
 
 
-def root_login_account(_, event):
-    '''
-    Generates a dynamic alert title for root logins using account mappings.
-    Args:
-        _ (self): The PantherRule instance (unused)
-        event (dict): The CloudTrail event
-    '''
-    ip_address = event.get("sourceIPAddress")
-    account = account_lookup_by_id(event.get("recipientAccountId"))
-    return f"Root Login from [{ip_address}] in account [{account}]"
-
-
 ########################################################
 ## Overrides
 ##
 ## Apply your internal configurations to Panther-managed rules.
 ## This can include single attributes, multiple attributes, or filters.
 
-# Override a single rule's severity to Low
-AWSCloudTrailAccountDiscovery.Severity = PantherSeverity.Low
-
 # Override a set of rule attributes and attach the 'prod_account' filter from above
 include(prod_account)(AWSCloudTrailStopped)
 # TODO(panther) This is a temproary workaround for updating AWS account IDs in rule tests
 update_account_id_tests([AWSCloudTrailStopped])
-
-# Override multiple atributes using the rule override() method
-AWSCloudTrailStopped.override(
-    Runbook=(
-        "If the account is in production, investigate why CloudTrail was stopped. "
-        "If it was intentional, ensure that the account is monitored by another CloudTrail. "
-        "If it was not intentional, investigate the account for unauthorized access."
-    ),
-    Reports=AWSCloudTrailStopped.Reports | {"Internal": ["C.4"]},
-)
-
-# Override a title dynamic function to match internal cloud account account mappings
-# Check out helpers/cloud.py for the account_lookup_by_id function
-AWSConsoleRootLogin.title = root_login_account
 
 # Add two filters to all GuardDuty rules
 for rule in base_rules:
@@ -133,7 +102,6 @@ register(
     [
         AWSALBHighVol400s,
         AWSCloudTrailStopped,
-        AWSCloudTrailAccountDiscovery,
         AWSConsoleRootLogin,
         HostIDSBaseRule,
         HostIDSMalware,
