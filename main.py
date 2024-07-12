@@ -1,4 +1,4 @@
-from pypanther import PantherLogType, PantherSeverity, get_panther_rules, register
+from pypanther import PantherLogType, get_panther_rules, register
 from pypanther.wrap import exclude, include
 from pypanther.get import table_print
 
@@ -7,7 +7,7 @@ from pypanther.rules.aws_cloudtrail_rules.aws_console_root_login import AWSConso
 
 from rules.aws_alb_rules.alb_high_400s import AWSALBHighVol400s
 from rules.custom_log_type.ids_rules import HostIDSBaseRule, HostIDSMalware
-from helpers.cloud import prod_account_ids, account_lookup_by_id, update_account_id_tests
+from helpers.cloud import prod_account_ids, update_account_id_tests
 
 
 ########################################################

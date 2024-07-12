@@ -1,4 +1,4 @@
-from pypanther import PantherEvent
+from pypanther.base import PantherEvent
 
 # The mapping of Cloud account environments, IDs, and names.
 CLOUD_ACCOUNTS = {
