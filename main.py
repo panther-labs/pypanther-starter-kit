@@ -1,14 +1,15 @@
 from pypanther import PantherLogType, get_panther_rules, register
 from pypanther.wrap import exclude, include
 from pypanther.get import table_print
+from pypanther.registry import __REGISTRY as registry
 
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_stopped import AWSCloudTrailStopped
 from pypanther.rules.aws_cloudtrail_rules.aws_console_root_login import AWSConsoleRootLogin
 
 from rules.aws_alb_rules.alb_high_400s import AWSALBHighVol400s
+from rules.aws_cloudtrail_rules.config import overrides
 from rules.custom_log_type.ids_rules import HostIDSBaseRule, HostIDSMalware
 from helpers.cloud import prod_account_ids, update_account_id_tests
-
 
 ########################################################
 ## Importing Panther-managed Rules
@@ -47,17 +48,19 @@ base_rules = get_panther_rules(LogTypes=onboarded_log_types)
 
 
 def prod_account(event):
-    '''
+    """
     Uses CloudTrail events to check if an account ID is in the list of production accounts.
     This uses a variable from the helpers/cloud module.
-    '''
+    """
     # TODO() Change this to use event.udm('account_id')
     return event.get("recipientAccountId") in prod_account_ids
 
 
 sensitive_services = {"s3", "dynamodb", "iam", "secretsmanager", "ec2"}
+
+
 def guard_duty_sensitive_service(event):
-    '''Uses GuardDuty findings to check if the event is for a sensitive service.'''
+    """Uses GuardDuty findings to check if the event is for a sensitive service."""
     service_name = event.deep_get("service", "action", "awsApiCallAction", "serviceName")
     return any(service_name.startswith(service) for service in sensitive_services)
 
@@ -91,9 +94,7 @@ for rule in base_rules:
 ## Register all rules
 # register(all_rules)
 
-# Use table_print() to pretty print the list of rules
-print("Base Rules")
-print(table_print(base_rules))
+overrides()
 
 # Register the rules for onboarded log types
 register(base_rules)
@@ -107,3 +108,6 @@ register(
         HostIDSMalware,
     ]
 )
+
+# Print the registry
+print(table_print(registry))
