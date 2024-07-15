@@ -44,7 +44,7 @@ prod_account_ids = {account["accountID"] for account in CLOUD_ACCOUNTS["Producti
 dev_accounts_ids = {account["accountID"] for account in CLOUD_ACCOUNTS["Development"]}
 test_accounts_ids = {account["accountID"] for account in CLOUD_ACCOUNTS["Test"]}
 
-# Title function overrides
+# Title Overrides
 
 
 def title_root_logins(_, event: PantherEvent):
@@ -57,3 +57,15 @@ def title_root_logins(_, event: PantherEvent):
     ip_address = event.get("sourceIPAddress")
     account = account_lookup_by_id(event.get("recipientAccountId"))
     return f"Root Login from [{ip_address}] in account [{account}]"
+
+
+# CloudTrail Filter Functions
+
+
+def filter_prod_account(event):
+    """
+    Uses CloudTrail events to check if an account ID is in the list of production accounts.
+    This uses a variable from the helpers/cloud module.
+    """
+    # TODO() Change this to use event.udm('account_id')
+    return event.get("recipientAccountId") in prod_account_ids
