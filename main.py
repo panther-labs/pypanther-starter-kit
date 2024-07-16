@@ -1,13 +1,12 @@
-from pypanther import LogType, Severity, get_panther_rules, register
+from pypanther import LogType, Severity, get_panther_rules, get_rules, register
 from pypanther.get import print_rule_table
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_account_discovery import AWSCloudTrailAccountDiscovery
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_stopped import AWSCloudTrailStopped
 from pypanther.rules.aws_cloudtrail_rules.aws_console_root_login import AWSConsoleRootLogin
 from pypanther.wrap import exclude, include
 
+import rules
 from helpers.cloud import account_lookup_by_id, prod_account_ids, update_account_id_tests
-from rules.aws_rules.alb_high_400s import AWSALBHighVol400s
-from rules.custom_logs.ids_rules import HostIDSBaseRule, HostIDSMalware
 
 ########################################################
 ## Importing Panther-managed Rules
@@ -90,7 +89,7 @@ include(prod_account)(AWSCloudTrailStopped)
 # TODO(panther) This is a temporary workaround for updating AWS account IDs in rule tests
 update_account_id_tests([AWSCloudTrailStopped])
 
-# Override multiple atributes using the rule override() method
+# Override multiple attributes using the rule override() method
 AWSCloudTrailStopped.override(
     default_runbook=(
         "If the account is in production, investigate why CloudTrail was stopped. "
@@ -129,13 +128,14 @@ print(print_rule_table(base_rules))
 # Register the rules for onboarded log types
 register(base_rules)
 
+# Register all custom rules inside the `rules` module
+# all subpackages of `rules` must have `__init__.py`
+register(get_rules(module=rules))
+
 register(
     [
-        AWSALBHighVol400s,
         AWSCloudTrailStopped,
         AWSCloudTrailAccountDiscovery,
         AWSConsoleRootLogin,
-        HostIDSBaseRule,
-        HostIDSMalware,
     ]
 )
