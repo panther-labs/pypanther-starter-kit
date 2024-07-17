@@ -34,7 +34,7 @@ Please install it if you are using a Mac computer.
 
 #### Make
 
-If you don't use `make`, we encourage you do [download](https://formulae.brew.sh/formula/make) it. 
+If you don't use `make`, we encourage you to [download](https://formulae.brew.sh/formula/make) it. 
 This project utilizes a [Makefile](./Makefile) to help with running common commands. 
 
 #### Python Version
@@ -61,7 +61,7 @@ When working with python projects, we highly recommend using a virtual environme
 This way, if you have multiple projects, the dependencies of one won't interfere with the dependencies of the other. 
 Most importantly, environments will be reproducible. 
 
-The most common python virtual environment (venv) managers are `venv`, `pipenv`, and `poetry`.
+The most common python virtual environment (venv) managers are `venv`, `pipenv`, `conda`, and `poetry`.
 We recommend `poetry` because of its ease-of-use, extensibility, and sophisticated dependency conflict resolution algorithm. 
 
 To download, follow the instructions [here](https://python-poetry.org/docs/).
