@@ -8,7 +8,7 @@ from helpers.custom_log_types import CustomLogType
 class HostIDSBaseRule(Rule):
     id = "HostIDS.BaseRule"
     enabled = True
-    log_types = [CustomLogType.Host_IDS]
+    log_types = [CustomLogType.HOST_IDS]
     default_severity = Severity.HIGH
     threshold = 1
     dedup_period_minutes = 6 * 60  # 6 hours
@@ -17,6 +17,8 @@ class HostIDSBaseRule(Rule):
         RuleTest(
             name="Confirmed Compromise",
             expected_result=True,
+            expected_title="Confirmed [compromise] on host [host1]",
+            expected_alert_context={"hostname": "host1", "time": "2021-01-01T00:00:00Z", "user": "groot"},
             log={
                 "event_name": "confirmed_compromise",
                 "host_name": "host1",

@@ -17,9 +17,9 @@ from helpers.cloud import account_lookup_by_id, prod_account_ids, update_account
 
 # Note: Replace with your onboarded log types
 onboarded_log_types = [
-    LogType.AWS_CloudTrail,
-    LogType.AWS_GuardDuty,
-    LogType.Okta_SystemLog,
+    LogType.AWS_CLOUDTRAIL,
+    LogType.AWS_GUARDDUTY,
+    LogType.OKTA_SYSTEM_LOG,
 ]
 
 # Get Panther-managed rules for onboarded log types
@@ -105,7 +105,7 @@ AWSConsoleRootLogin.title = root_login_account
 
 # Add two filters to all GuardDuty rules
 for rule in base_rules:
-    if LogType.AWS_GuardDuty in rule.log_types:
+    if LogType.AWS_GUARDDUTY in rule.log_types:
         # Include only production accounts
         include(guard_duty_sensitive_service)(rule)
         # Exclude any 'Discovery' tactic finding
@@ -139,3 +139,5 @@ register(
         AWSConsoleRootLogin,
     ]
 )
+
+print_rule_table(get_rules(module=rules))
