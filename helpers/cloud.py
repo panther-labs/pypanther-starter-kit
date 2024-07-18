@@ -33,8 +33,8 @@ def update_account_id_tests(rules):
         else "123456789012"
     )
     for rule in rules:
-        for test in rule.Tests:
-            test.Log["recipientAccountId"] = sample_account_id
+        for test in rule.tests:
+            test.log["recipientAccountId"] = sample_account_id
 
 
 # Pre-calculates a set of IDs to be used in overrides and filters

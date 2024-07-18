@@ -16,6 +16,66 @@ Before you begin, make sure you have the following installed:
 
 Ensure that Poetry is using the correct version of Python by running `poetry env use path/to/python3.11`
 
+### Local Environment Recommendations
+
+It is vitally important to understand how your local environment is set up when running a python project.
+There are many different ways to go about doing it. 
+The following set up is how the Panther team recommends you set things up.
+Doing it this way will help you avoid potential problems with package versions and python versions; as well as, making it easier to get support from the Panther team when issues do arise. 
+
+#### Brew
+
+Some of the following tools are installed via [Homebrew](https://brew.sh/). 
+Please install it if you are using a Mac computer. 
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+#### Make
+
+If you don't use `make`, we encourage you to [download](https://formulae.brew.sh/formula/make) it. 
+This project utilizes a [Makefile](./Makefile) to help with running common commands. 
+
+#### Python Version
+
+Python versions can be managed in many different ways.
+We recommend using [Pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation). 
+If you are already using a python version management tool, or have python installed any other way, but decide you want to use Pyenv, we recommend uninstalling all other python versions to avoid any troubles or confusion. 
+
+A handy way to know if python is already installed is by running:
+```bash
+which python
+```
+
+After installing Pyenv, you can set your python version by running the following:
+```bash
+pyenv install 3.11
+pyenv global 3.11
+```
+
+#### Virtual Environment
+
+A virtual environment is a contained local environment on your machine that has everything it needs to do what it needs to do. 
+When working with python projects, we highly recommend using a virtual environment.
+This way, if you have multiple projects, the dependencies of one won't interfere with the dependencies of the other. 
+Most importantly, environments will be reproducible. 
+
+The most common python virtual environment (venv) managers are `venv`, `pipenv`, `conda`, and `poetry`.
+We recommend `poetry` because of its ease-of-use, extensibility, and sophisticated dependency conflict resolution algorithm. 
+
+To download, follow the instructions [here](https://python-poetry.org/docs/).
+The instructions recommend installing with [pipx](https://pipx.pypa.io/stable/installation/).
+You can use `pip` (which comes with downloading python) as well. 
+
+`poetry` utilizes a `pyproject.toml` file, which is a standardized file that many python tools use, for its configuration settings.
+The starter kit already has [one](./pyproject.toml) defined for you. 
+
+Once you install `poetry`, **all python commands should be run inside the poetry shell**. 
+Even in your CI pipeline. 
+More info on that [here](https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment).
+We have a [Makefile](./Makefile) that takes care of that for you.
+
 ### Installation
 
 Follow these steps to get your development environment set up:

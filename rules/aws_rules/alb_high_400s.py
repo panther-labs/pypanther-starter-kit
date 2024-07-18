@@ -1,19 +1,21 @@
 from typing import Dict
-from pypanther import PantherRule, PantherSeverity, PantherLogType, PantherRuleTest
+
+from pypanther import LogType, Rule, RuleTest, Severity
+
 from rules.aws_rules.sample_logs import sample_alb_log
 
 
-class AWSALBHighVol400s(PantherRule):
-    RuleID = "AWS.ALB.HighVol400s"
-    Enabled = False
-    LogTypes = [PantherLogType.AWS_ALB]
-    Severity = PantherSeverity.Medium
+class AWSALBHighVol400s(Rule):
+    id = "AWS.ALB.HighVol400s"
+    enabled = False
+    log_types = [LogType.AWS_ALB]
+    default_severity = Severity.MEDIUM
     # 10 matches per minute
-    Threshold = 50
-    DedupPeriodMinutes = 5
-    Description = "This rule tracks abuse to web ports via AWS Load Balancers"
-    Reports = {"MITRE ATT&CK": ["TA0010:T1499"]}  # Impact: Endpoint Denial of Service
-    Runbook = (
+    threshold = 50
+    dedup_period_minutes = 5
+    default_description = "This rule tracks abuse to web ports via AWS Load Balancers"
+    reports = {"MITRE ATT&CK": ["TA0010:T1499"]}  # Impact: Endpoint Denial of Service
+    default_runbook = (
         "Correlate the source IP to find matches from other triggered rules. "
         "Check which path is being requested to see if it is particularly sensitive. "
         "Check if the source IP is known bad through threat intelligence integrations. "
@@ -22,21 +24,21 @@ class AWSALBHighVol400s(PantherRule):
         "Check if this volume of 400 errors is typical or not for that load balancer. "
     )
 
-    Tests = [
-        PantherRuleTest(
-            Name="ELB 400s, no domain",
-            ExpectedResult=False,
-            Log=sample_alb_log,
+    tests = [
+        RuleTest(
+            name="ELB 400s, no domain",
+            expected_result=False,
+            log=sample_alb_log,
         ),
-        PantherRuleTest(
-            Name="ELB 400s, with a domain",
-            ExpectedResult=True,
-            Log=sample_alb_log | {"domainName": "example.com"},
+        RuleTest(
+            name="ELB 400s, with a domain",
+            expected_result=True,
+            log=sample_alb_log | {"domainName": "example.com"},
         ),
-        PantherRuleTest(
-            Name="ELB 200s, with a domain",
-            ExpectedResult=False,
-            Log=sample_alb_log
+        RuleTest(
+            name="ELB 200s, with a domain",
+            expected_result=False,
+            log=sample_alb_log
             | {
                 "domainName": "example.com",
                 "elbStatusCode": 200,
