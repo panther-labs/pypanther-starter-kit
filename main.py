@@ -82,7 +82,7 @@ def root_login_account(_, event):
 ## This can include single attributes, multiple attributes, or filters.
 
 # Override a single rule's severity to Low
-AWSCloudTrailAccountDiscovery.Severity = Severity.LOW
+AWSCloudTrailAccountDiscovery.severity = Severity.LOW
 
 # Override a set of rule attributes and attach the 'prod_account' filter from above
 include(prod_account)(AWSCloudTrailStopped)
