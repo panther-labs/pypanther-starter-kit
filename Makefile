@@ -14,3 +14,6 @@ upload:
 
 install:
 	poetry install --no-root
+
+update:
+	poetry update
