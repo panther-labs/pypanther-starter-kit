@@ -1,10 +1,10 @@
 from pypanther import LogType, Severity, get_panther_rules, get_rules, register
 from pypanther.get import print_rule_table
+from pypanther.registry import __REGISTRY
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_account_discovery import AWSCloudTrailAccountDiscovery
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_stopped import AWSCloudTrailStopped
 from pypanther.rules.aws_cloudtrail_rules.aws_console_root_login import AWSConsoleRootLogin
 from pypanther.wrap import exclude, include
-from pypanther.registry import __REGISTRY
 
 import rules
 from helpers.cloud import account_lookup_by_id, prod_account_ids, update_account_id_tests

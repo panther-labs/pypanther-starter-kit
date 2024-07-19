@@ -1,4 +1,5 @@
-from pypanther import Rule, Severity, LogType
+from pypanther import LogType, Rule, Severity
+
 
 class ValidateMyRule(Rule):
     id = "Custom.Validate.MyRule"
@@ -11,8 +12,6 @@ class ValidateMyRule(Rule):
     def rule(self, event):
         return event.get("domain") in self.allowed_domains
 
-    @classmethod 
+    @classmethod
     def validate_config(cls):
-        assert (
-            len(cls.allowed_domains) > 0
-        ), "The allowed_domains field on your must be populated"
+        assert len(cls.allowed_domains) > 0, "The allowed_domains field on your must be populated"
