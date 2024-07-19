@@ -827,13 +827,13 @@ typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
 name = "pypanther"
-version = "0.1.1a37"
+version = "0.1.1a38"
 description = ""
 optional = false
 python-versions = "==3.11.*"
 files = [
-    {file = "pypanther-0.1.1a37-py3-none-any.whl", hash = "sha256:e2a52b5917f85d77dc463ea93890596e1b4c0b1821c082e0117080584d04016f"},
-    {file = "pypanther-0.1.1a37.tar.gz", hash = "sha256:db0ba8f85d7fba1158201c80da4ea004a7eadc801457eeaafb8ae7a5b8b854f6"},
+    {file = "pypanther-0.1.1a38-py3-none-any.whl", hash = "sha256:08b90f2e641506306e1f3c9dea43ae94eb8857b77d7a1b34ff26fa710caa68d7"},
+    {file = "pypanther-0.1.1a38.tar.gz", hash = "sha256:b7f9973a71212488f8ccf75e4572f5ff37c54c88d7ece65aa47ebc7f51fd9eb2"},
 ]
 
 [package.dependencies]
@@ -1173,4 +1173,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.*"
-content-hash = "31a9666aa432f0ab04d3f00b259febd5cd68918ff9d88a90cc2047a97ef93f6d"
+content-hash = "cd5a5e0a195be1446a9e569017e2d39d9f74ad18676bdaf7abe6cdaa62babed1"
