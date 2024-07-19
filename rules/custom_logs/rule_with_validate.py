@@ -1,9 +1,10 @@
 from pypanther import Rule, Severity, LogType
 
 class ValidateMyRule(Rule):
-    id = "Validate.MyRule"
+    id = "Custom.Validate.MyRule"
     severity = Severity.INFO
     log_types = [LogType.PANTHER_AUDIT]
+    default_severity = Severity.HIGH
 
     allowed_domains: list[str] = []
 

@@ -4,9 +4,11 @@ from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_account_discovery impor
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_stopped import AWSCloudTrailStopped
 from pypanther.rules.aws_cloudtrail_rules.aws_console_root_login import AWSConsoleRootLogin
 from pypanther.wrap import exclude, include
+from pypanther.registry import __REGISTRY
 
 import rules
 from helpers.cloud import account_lookup_by_id, prod_account_ids, update_account_id_tests
+from helpers.rule_overrides import get_rule_by_id
 
 ########################################################
 ## Importing Panther-managed Rules
@@ -24,6 +26,9 @@ onboarded_log_types = [
 
 # Get Panther-managed rules for onboarded log types
 base_rules = get_panther_rules(log_types=onboarded_log_types)
+
+# Load all rules defined locally in the `rules` module
+local_rules = get_rules(module=rules)
 
 ## Gets all Panther-managed Rules
 # all_rules = get_panther_rules()
@@ -111,6 +116,9 @@ for rule in base_rules:
         # Exclude any 'Discovery' tactic finding
         exclude(lambda event: event.get("type").startswith("Discovery"))(rule)
 
+# Example using a rule with validate
+validate_rule_example = get_rule_by_id(local_rules, "Custom.Validate.MyRule")
+validate_rule_example.allowed_domains = ["example.com"]
 
 ########################################################
 ## Register
@@ -121,16 +129,12 @@ for rule in base_rules:
 ## Register all rules
 # register(all_rules)
 
-# Use print_rule_table() to pretty print the list of rules
-print("Base Rules")
-print(print_rule_table(base_rules))
-
 # Register the rules for onboarded log types
 register(base_rules)
 
 # Register all custom rules inside the `rules` module
 # all subpackages of `rules` must have `__init__.py`
-register(get_rules(module=rules))
+register(local_rules)
 
 register(
     [
@@ -139,3 +143,5 @@ register(
         AWSConsoleRootLogin,
     ]
 )
+
+print_rule_table(__REGISTRY)
