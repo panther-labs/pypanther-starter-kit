@@ -23,17 +23,17 @@ onboarded_log_types = [
 ]
 
 # Get Panther-managed rules for onboarded log types
-base_rules = get_panther_rules(LogTypes=onboarded_log_types)
+base_rules = get_panther_rules(log_types=onboarded_log_types)
 
 ## Gets all Panther-managed Rules
 # all_rules = get_panther_rules()
 
 ## Get Panther-managed rules for specific severities
 # high_sev_rules = get_panther_rules(
-#     LogTypes=onboarded_log_types,
-#     Severity=[
-#         Severity.Critical,
-#         Severity.High,
+#     log_types=onboarded_log_types,
+#     default_severity=[
+#         Severity.CRITICAL,
+#         Severity.HIGH,
 #     ],
 # )
 
@@ -82,7 +82,7 @@ def root_login_account(_, event):
 ## This can include single attributes, multiple attributes, or filters.
 
 # Override a single rule's severity to Low
-AWSCloudTrailAccountDiscovery.Severity = Severity.LOW
+AWSCloudTrailAccountDiscovery.default_severity = Severity.LOW
 
 # Override a set of rule attributes and attach the 'prod_account' filter from above
 include(prod_account)(AWSCloudTrailStopped)
