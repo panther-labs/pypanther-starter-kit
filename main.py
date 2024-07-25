@@ -1,5 +1,5 @@
 from pypanther import LogType, Severity, get_panther_rules, get_rules, register
-from pypanther.get import print_rule_table
+from pypanther.display import print_rule_table
 from pypanther.registry import registered_rules
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_account_discovery import AWSCloudTrailAccountDiscovery
 from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_stopped import AWSCloudTrailStopped
