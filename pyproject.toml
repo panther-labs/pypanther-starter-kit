@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "3.11.*"
-pypanther = "^0.1.1a38"
+pypanther = "^0.1.1a39"
 panther-core = "^0.11.1"
 
 [tool.poetry.group.dev.dependencies]
