@@ -145,3 +145,4 @@ register(
 )
 
 print_rule_table(registered_rules())
+print("Registered rules:", len(registered_rules()))
