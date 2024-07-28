@@ -63,27 +63,27 @@ class RuleManager:
             # If value is not callable, create a lambda function that returns the value
             setattr(rule, method_name, lambda event: value)
 
-    def apply_include_filter(self, rule_id: str, filter_func):
+    def include(self, rule_id: str, filter_func):
         """Apply an include filter to a specific rule."""
         if rule_id in self.rules:
             include(filter_func)(self.rules[rule_id])
         else:
             print(f"Warning: Rule with id {rule_id} not found.")
 
-    def apply_exclude_filter(self, rule_id: str, filter_func):
+    def exclude(self, rule_id: str, filter_func):
         """Apply an exclude filter to a specific rule."""
         if rule_id in self.rules:
             exclude(filter_func)(self.rules[rule_id])
         else:
             print(f"Warning: Rule with id {rule_id} not found.")
 
-    def include_bulk_filter(self, log_type: LogType, filter_func):
+    def include_bulk(self, log_type: LogType, filter_func):
         """Apply a filter to all rules of a specific log type."""
         for rule in self.rules.values():
             if log_type in rule.log_types:
                 include(filter_func)(rule)
 
-    def exclude_bulk_filter(self, log_type: LogType, filter_func):
+    def exclude_bulk(self, log_type: LogType, filter_func):
         """Exclude events based on a filter for all rules of a specific log type."""
         for rule in self.rules.values():
             if log_type in rule.log_types:

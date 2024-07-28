@@ -11,6 +11,11 @@ def guard_duty_sensitive_service_filter(event):
     return any(service_name.startswith(service) for service in sensitive_aws_ervices)
 
 
+def guard_duty_discovery_filter(event):
+    """Uses GuardDuty findings to check if the finding starts with Discovery."""
+    return event.get("type").startswith("Discovery")
+
+
 def apply_overrides(manager: RuleManager):
-    manager.exclude_bulk_filter(LogType.AWS_GUARDDUTY, lambda event: event.get("type").startswith("Discovery"))
-    manager.include_bulk_filter(LogType.AWS_GUARDDUTY, guard_duty_sensitive_service_filter)
+    manager.exclude_bulk(LogType.AWS_GUARDDUTY, guard_duty_discovery_filter)
+    manager.include_bulk(LogType.AWS_GUARDDUTY, guard_duty_sensitive_service_filter)

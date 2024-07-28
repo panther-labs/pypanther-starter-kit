@@ -26,6 +26,9 @@ manager.load_custom_rules(module=rules)
 # Set a required field
 manager.set_rule_property("Custom.PantherAudit.UploadArtifacts", "allowed_users", ["PAT Upload"])
 
+# Would like to do...
+# manager.override("Custom.PantherAudit.UploadArtifacts", allowed_users = ["PAT Upload"])
+
 # Apply overrides
 manager.apply_overrides(aws_cloudtrail)
 manager.apply_overrides(aws_guardduty)

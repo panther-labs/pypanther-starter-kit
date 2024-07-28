@@ -40,5 +40,5 @@ def apply_overrides(manager: RuleManager):
     manager.set_rule_method("AWS.Console.RootLogin-prototype", "title", root_login_account_title)
 
     # Set an include filter for a specific rule
-    manager.apply_include_filter("AWS.CloudTrail.Stopped-prototype", prod_account_filter)
+    manager.include("AWS.CloudTrail.Stopped-prototype", prod_account_filter)
     update_account_id_tests([manager.get_rule_by_id("AWS.CloudTrail.Stopped-prototype")])
