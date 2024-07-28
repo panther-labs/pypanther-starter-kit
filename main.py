@@ -12,6 +12,7 @@ manager.load_panther_rules(
         LogType.AWS_GUARDDUTY,
         LogType.OKTA_SYSTEM_LOG,
         LogType.GITHUB_AUDIT,
+        LogType.PANTHER_AUDIT,
     ],
     default_severity=[
         Severity.MEDIUM,
@@ -23,7 +24,7 @@ manager.load_panther_rules(
 manager.load_custom_rules(module=rules)
 
 # Set a required field
-manager.set_rule_property("Custom.Validate.Rule", "allowed_domains", ["example.com"])
+manager.set_rule_property("Custom.PantherAudit.UploadArtifacts", "allowed_users", ["PAT Upload"])
 
 # Apply overrides
 manager.apply_overrides(aws_cloudtrail)
