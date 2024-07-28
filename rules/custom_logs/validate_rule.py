@@ -1,8 +1,8 @@
 from pypanther import LogType, Rule, Severity
 
 
-class ValidateMyRule(Rule):
-    id = "Custom.Validate.MyRule"
+class ValidateRule(Rule):
+    id = "Custom.Validate.Rule"
     severity = Severity.INFO
     log_types = [LogType.PANTHER_AUDIT]
     default_severity = Severity.HIGH

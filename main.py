@@ -23,7 +23,7 @@ manager.load_panther_rules(
 manager.load_custom_rules(module=rules)
 
 # Set a required field
-manager.set_rule_property("Custom.Validate.MyRule", "allowed_domains", ["example.com"])
+manager.set_rule_property("Custom.Validate.Rule", "allowed_domains", ["example.com"])
 
 # Apply overrides
 manager.apply_overrides(aws_cloudtrail)
