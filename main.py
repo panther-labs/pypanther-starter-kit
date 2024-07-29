@@ -3,10 +3,11 @@ from pypanther import LogType, Severity
 import rules
 from overrides import aws_cloudtrail, aws_guardduty
 from rule_manager import RuleManager
+from rules.panther_audit.validate_rule import PantherAuditUploadArtifacts
 
 # Setup Manager and load rules
 manager = RuleManager()
-manager.load_panther_rules(
+manager.load_managed_rules(
     log_types=[
         LogType.AWS_CLOUDTRAIL,
         LogType.AWS_GUARDDUTY,
@@ -23,11 +24,8 @@ manager.load_panther_rules(
 # Load all local custom rules
 manager.load_custom_rules(module=rules)
 
-# Set a required field
-manager.set_rule_property("Custom.PantherAudit.UploadArtifacts", "allowed_users", ["PAT Upload"])
-
-# Would like to do...
-# manager.override("Custom.PantherAudit.UploadArtifacts", allowed_users = ["PAT Upload"])
+# Set a required field through a direct import
+PantherAuditUploadArtifacts.allowed_users = ["PAT Upload"]
 
 # Apply overrides
 manager.apply_overrides(aws_cloudtrail)

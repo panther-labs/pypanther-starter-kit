@@ -10,7 +10,7 @@ class RuleManager:
         self.panther_rules: Dict[str, Rule] = {}
         self.custom_rules: Dict[str, Rule] = {}
 
-    def load_panther_rules(self, **kwargs):
+    def load_managed_rules(self, **kwargs):
         """Load Panther-managed rules."""
         panther_rules_list = get_panther_rules(**kwargs)
         self.panther_rules = {rule.id: rule for rule in panther_rules_list}
@@ -26,7 +26,7 @@ class RuleManager:
         """Retrieve a rule by its ID."""
         return self.rules.get(rule_id)
 
-    def apply_override(self, rule_id: str, **kwargs):
+    def override(self, rule_id: str, **kwargs):
         """Apply overrides to a specific rule."""
         if rule_id in self.rules:
             self.rules[rule_id].override(**kwargs)
@@ -36,7 +36,10 @@ class RuleManager:
     def apply_overrides(self, overrides_module):
         overrides_module.apply_overrides(self)
 
-    def set_rule_method(self, rule_id: str, method_name: str, value: Any):
+    def set_title(self, rule_id: str, method: Any):
+        self.set_method(rule_id=rule_id, method_name="title", value=method)
+
+    def set_method(self, rule_id: str, method_name: str, value: Any):
         """
         Set a dynamic method for a specific rule (e.g., title, severity, destinations).
 
@@ -89,7 +92,7 @@ class RuleManager:
             if log_type in rule.log_types:
                 exclude(filter_func)(rule)
 
-    def set_rule_property(self, rule_id: str, property_name: str, value: Any):
+    def set_property(self, rule_id: str, property_name: str, value: Any):
         """
         Set a specific property for a rule.
 

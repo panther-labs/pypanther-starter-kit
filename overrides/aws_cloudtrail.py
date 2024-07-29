@@ -27,7 +27,7 @@ def prod_account_filter(event):
 
 def apply_overrides(manager: RuleManager):
     # Set attribute overrides on a specific rule
-    manager.apply_override(
+    manager.override(
         "AWS.CloudTrail.Stopped-prototype",
         default_severity=Severity.LOW,
         default_runbook=(
@@ -37,7 +37,7 @@ def apply_overrides(manager: RuleManager):
         ),
     )
     # Override a rule's title function
-    manager.set_rule_method("AWS.Console.RootLogin-prototype", "title", root_login_account_title)
+    manager.set_title("AWS.Console.RootLogin-prototype", root_login_account_title)
 
     # Set an include filter for a specific rule
     manager.include("AWS.CloudTrail.Stopped-prototype", prod_account_filter)
