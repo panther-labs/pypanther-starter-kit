@@ -25,8 +25,8 @@ aws_alb_high_vol_400s_tests = [
         log=sample_alb_log,
         mocks=[
             RuleMock(
-                object_name='_make_request',
-                return_value={'response': {'Items': [{'DomainName': 'example.com', 'RiskScore': 0}]}},
+                object_name='make_request',
+                return_value={'Items': [{'DomainName': 'example.com', 'RiskScore': 0}]},
             ),
         ],
     ),
@@ -50,8 +50,8 @@ aws_alb_high_vol_400s_tests = [
         log=sample_alb_log | {"domainName": "example.com"},
         mocks=[
             RuleMock(
-                object_name='_make_request',
-                return_value={'response': {'Items': [{'DomainName': 'example.com', 'RiskScore': 50}]}},
+                object_name='make_request',
+                return_value={'Items': [{'DomainName': 'example.com', 'RiskScore': 50}]},
             ),
         ],
     ),
@@ -80,12 +80,27 @@ aws_alb_high_vol_400s_tests = [
         },
         mocks=[
             RuleMock(
-                object_name='_make_request',
-                return_value={'response': {'Items': [{'DomainName': 'example.com', 'RiskScore': 0}]}},
+                object_name='make_request',
+                return_value={'Items': [{'DomainName': 'example.com', 'RiskScore': 0}]},
             ),
         ],
     ),
 ]
+
+def make_request(domain):
+    return {"Items": [{"DomainName": domain, "RiskScore": 0}]}
+
+def get_risk_score(event):
+    domain_name = event.get("domainName")
+    if domain_name is None:
+        return 0
+    response = make_request(domain_name)
+    items = response.get("Items", [])
+    print(items)
+    if items:
+        return items[0].get("RiskScore", 0)
+    return 0
+
 
 class AWSALBHighVol400s(Rule):
     id = "AWS.ALB.HighVol400s"
@@ -110,19 +125,6 @@ class AWSALBHighVol400s(Rule):
     # 429 Too Many Requests, 400 Bad Request, 403 Forbidden
     STATUS_CODES = {429, 400, 403}
     TARGET_WEB_PORTS = {80, 443, 4443, 8080}
-
-    def _make_request(domain):
-        return {"response": {"Items": [{"DomainName": domain, "RiskScore": 0}]}}
-
-    def _get_risk_score(self, event) -> int:
-        domain_name = event.get("domainName")
-        if domain_name is None:
-            return 0
-        response = self._make_request(domain_name)
-        items = response.get("Items", [])
-        if items:
-            return items[0].get("RiskScore", 0)
-        return 0
 
     def rule(self, event) -> bool:
         return (
@@ -150,5 +152,5 @@ class AWSALBHighVol400s(Rule):
             "request_url": event.get("requestUrl"),
             "mitre_technique": "Endpoint Denial of Service",
             "mitre_tactic": "Impact",
-            "risk_score": self._get_risk_score(event),
+            "risk_score": get_risk_score(event),
         }

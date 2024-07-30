@@ -143,5 +143,3 @@ register(
         AWSConsoleRootLogin,
     ]
 )
-
-print_rule_table(registered_rules())
