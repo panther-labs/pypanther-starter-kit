@@ -1,7 +1,9 @@
 from pypanther import Severity
+from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_stopped import AWSCloudTrailStopped
+from pypanther.rules.aws_cloudtrail_rules.aws_console_root_login import AWSConsoleRootLogin
+from pypanther.wrap import include
 
 from helpers.cloud import account_lookup_by_id, prod_account_ids, update_account_id_tests
-from rule_manager import RuleManager
 
 
 def root_login_account_title(_, event):
@@ -25,10 +27,9 @@ def prod_account_filter(event):
     return event.get("recipientAccountId") in prod_account_ids
 
 
-def apply_overrides(manager: RuleManager):
+def apply_overrides(rules):
     # Set attribute overrides on a specific rule
-    manager.override(
-        "AWS.CloudTrail.Stopped-prototype",
+    AWSCloudTrailStopped.override(
         default_severity=Severity.LOW,
         default_runbook=(
             "If the account is in production, investigate why CloudTrail was stopped. "
@@ -36,9 +37,10 @@ def apply_overrides(manager: RuleManager):
             "If it was not intentional, investigate the account for unauthorized access."
         ),
     )
-    # Override a rule's title function
-    manager.set_title("AWS.Console.RootLogin-prototype", root_login_account_title)
 
-    # Set an include filter for a specific rule
-    manager.include("AWS.CloudTrail.Stopped-prototype", prod_account_filter)
-    update_account_id_tests([manager.get_rule_by_id("AWS.CloudTrail.Stopped-prototype")])
+    # Add an include filter with the prod_account_filter function
+    include(prod_account_filter)(AWSCloudTrailStopped)
+    update_account_id_tests([AWSCloudTrailStopped])
+
+    # Override a rule's title function
+    AWSConsoleRootLogin.title = root_login_account_title

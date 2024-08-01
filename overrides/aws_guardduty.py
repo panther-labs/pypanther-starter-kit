@@ -1,6 +1,5 @@
 from pypanther import LogType
-
-from rule_manager import RuleManager
+from pypanther.wrap import exclude, include
 
 sensitive_aws_ervices = {"s3", "dynamodb", "iam", "secretsmanager", "ec2"}
 
@@ -16,6 +15,8 @@ def guard_duty_discovery_filter(event):
     return event.get("type").startswith("Discovery")
 
 
-def apply_overrides(manager: RuleManager):
-    manager.exclude_bulk(LogType.AWS_GUARDDUTY, guard_duty_discovery_filter)
-    manager.include_bulk(LogType.AWS_GUARDDUTY, guard_duty_sensitive_service_filter)
+def apply_overrides(rules):
+    for rule in rules:
+        if LogType.AWS_GUARDDUTY in rule.log_types:
+            exclude(guard_duty_discovery_filter)(rule)
+            include(guard_duty_sensitive_service_filter)(rule)
