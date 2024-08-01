@@ -2,11 +2,12 @@ from pypanther import LogType, Rule, Severity
 
 
 class PantherAuditUploadArtifacts(Rule):
+    enabled = False
     id = "Custom.PantherAudit.UploadArtifacts"
     log_types = [LogType.PANTHER_AUDIT]
     default_severity = Severity.HIGH
 
-    allowed_users: list[str] = []
+    allowed_users: list[str] = ["PAT Upload"]
 
     def rule(self, event):
         return (

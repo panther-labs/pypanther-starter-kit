@@ -20,9 +20,6 @@ base_rules = get_panther_rules(
 # Load all local custom rules
 custom_rules = get_rules(module=rules)
 
-# Set a required rule property with a direct import
-# PantherAuditUploadArtifacts.allowed_users = ["PAT Upload"]
-
 # Apply overrides
 # aws_cloudtrail.apply_overrides(base_rules)
 # aws_guardduty.apply_overrides(base_rules)
