@@ -6,8 +6,9 @@ from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_stopped import AWSCloud
 from pypanther.rules.aws_cloudtrail_rules.aws_console_root_login import AWSConsoleRootLogin
 from pypanther.wrap import exclude, include
 
-import rules.aws_rules
+import rules
 from helpers.cloud import account_lookup_by_id, prod_account_ids, update_account_id_tests
+from helpers.rule_overrides import get_rule_by_id
 
 ########################################################
 ## Importing Panther-managed Rules
@@ -27,7 +28,7 @@ onboarded_log_types = [
 base_rules = get_panther_rules(log_types=onboarded_log_types)
 
 # Load all rules defined locally in the `rules` module
-local_rules = get_rules(module=rules.aws_rules)
+local_rules = get_rules(module=rules)
 
 ## Gets all Panther-managed Rules
 # all_rules = get_panther_rules()
@@ -116,8 +117,8 @@ for rule in base_rules:
         exclude(lambda event: event.get("type").startswith("Discovery"))(rule)
 
 # Example using a rule with validate
-# validate_rule_example = get_rule_by_id(local_rules, "Custom.Validate.MyRule")
-# validate_rule_example.allowed_domains = ["example.com"]
+validate_rule_example = get_rule_by_id(local_rules, "Custom.Validate.MyRule")
+validate_rule_example.allowed_domains = ["example.com"]
 
 ########################################################
 ## Register
