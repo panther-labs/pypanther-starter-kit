@@ -1,6 +1,6 @@
 from pypanther import get_panther_rules, get_rules, register
 
-from rules import aws_rules
+from rules import examples
 
 # from overrides import aws_cloudtrail, aws_guardduty
 
@@ -17,8 +17,8 @@ base_rules = get_panther_rules(
     # ],
 )
 # Load all local custom rules
-#TODO: Update when custom rules are functional
-custom_rules = get_rules(module=aws_rules)
+# TODO: Update when custom rules are functional
+custom_rules = get_rules(module=examples)
 
 # Apply overrides
 # aws_cloudtrail.apply_overrides(base_rules)
