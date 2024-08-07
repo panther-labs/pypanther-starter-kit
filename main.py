@@ -4,8 +4,6 @@ from helpers.custom_log_types import CustomLogType
 from overrides import aws_cloudtrail, aws_guardduty
 from rules import examples
 
-# from overrides import aws_cloudtrail, aws_guardduty
-
 # Load base rules
 base_rules = get_panther_rules(
     # log_types=[
