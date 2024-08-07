@@ -1,0 +1,28 @@
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  upload-pre:
+    name: Upload to Panther on Release
+    runs-on: ubuntu-latest
+    env:
+      API_HOST: ${{ secrets.API_HOST }}
+      API_TOKEN: ${{ secrets.API_TOKEN }}
+    
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - name: Set up Python
+        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip poetry
+          poetry install
+      - name: pypather test
+        run: poetry run pypanther test
+      - name: pypanther upload
+        run: |
+          poetry run pypanther upload --api-host ${{ env.API_HOST }} --api-token ${{ env.API_TOKEN }} --confirm
