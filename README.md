@@ -134,6 +134,18 @@ Each of these components plays a vital role in the functionality of the `pypanth
 
 The `main.py` and all other content in this repository serve as examples to build your configuration. For full documentation and functionality, [check out our docs](https://docs.panther.com/).
 
+## CI/CD Workflow
+
+An example [GitHub workflow](https://github.com/panther-labs/pypanther-starter-kit/blob/main/.github/workflows/upload.yml) is provided to upload your configured ruleset to your Panther instance when PRs are merged to `release` branch.  `API_HOST` and `API_TOKEN` must be configured in your GitHub repository secrets.
+
+An example process might look like this:
+
+- PRs are merged to `main` as new rules are developed and existing rules are tuned.
+
+- When you are ready to update your Panther instance, create a PR from `main` to `release`.
+
+- Merging the PR to `release` automatically updates Panther, making the `release` branch the single source of truth for your Panther configuration!
+
 ## License
 
 This project is licensed under the [AGPL-3.0 License] - see the LICENSE.txt file for details.
