@@ -1,4 +1,6 @@
 from pypanther import get_panther_rules, get_rules, register
+from pypanther.display import print_rule_table
+from pypanther.registry import registered_rules
 
 from helpers.custom_log_types import CustomLogType
 from overrides import aws_cloudtrail, aws_guardduty
@@ -27,3 +29,5 @@ aws_guardduty.apply_overrides(base_rules)
 
 # Register all rules
 register(base_rules + custom_rules)
+print_rule_table(list(registered_rules()))
+print("Registered rules:", len(registered_rules()))
