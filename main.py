@@ -29,5 +29,5 @@ aws_guardduty.apply_overrides(base_rules)
 
 # Register all rules
 register(base_rules + custom_rules)
-print_rule_table(list(registered_rules()))
+print_rule_table(registered_rules())
 print("Registered rules:", len(registered_rules()))
