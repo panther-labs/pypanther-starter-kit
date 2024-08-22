@@ -1,4 +1,4 @@
-from pypanther import get_panther_rules, get_rules, register
+from pypanther import Severity, get_panther_rules, get_rules, register
 
 from helpers.custom_log_types import CustomLogType
 from overrides import aws_cloudtrail, aws_guardduty
@@ -11,10 +11,10 @@ base_rules = get_panther_rules(
     #     LogType.AWS_GUARDDUTY,
     #     LogType.PANTHER_AUDIT,
     # ],
-    # default_severity=[
-    #     Severity.MEDIUM,
-    #     Severity.HIGH,
-    # ],
+    default_severity=[
+        Severity.CRITICAL,
+        Severity.HIGH,
+    ],
 )
 # Load all local custom rules
 custom_rules = get_rules(module=examples)
