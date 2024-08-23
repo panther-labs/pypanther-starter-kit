@@ -1,6 +1,5 @@
 test:
 	poetry run pypanther test
-	python -m unittest discover
 
 fmt:
 	poetry run ruff check --select I --fix .
