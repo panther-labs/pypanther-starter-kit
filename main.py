@@ -11,10 +11,10 @@ base_rules = get_panther_rules(
     #     LogType.AWS_GUARDDUTY,
     #     LogType.PANTHER_AUDIT,
     # ],
-    default_severity=[
-        Severity.CRITICAL,
-        Severity.HIGH,
-    ],
+    # default_severity=[
+    #     Severity.CRITICAL,
+    #     Severity.HIGH,
+    # ],
 )
 # Load all local custom rules
 custom_rules = get_rules(module=examples)

@@ -2,13 +2,13 @@ from pypanther import LogType, RuleTest
 from pypanther.rules.aws_guardduty_rules.aws_guardduty_high_sev_findings import AWSGuardDutyHighSeverityFinding
 from pypanther.wrap import exclude, include
 
-sensitive_aws_ervices = {"s3", "dynamodb", "iam", "secretsmanager", "ec2"}
+sensitive_aws_services = {"s3", "dynamodb", "iam", "secretsmanager", "ec2"}
 
 
 def guard_duty_sensitive_service_filter(event):
     """Uses GuardDuty findings to check if the event is for a sensitive service."""
     service_name = event.deep_get("service", "action", "awsApiCallAction", "serviceName")
-    return any(service_name.startswith(service) for service in sensitive_aws_ervices)
+    return any(service_name.startswith(service) for service in sensitive_aws_services)
 
 
 def guard_duty_discovery_filter(event):
@@ -17,7 +17,7 @@ def guard_duty_discovery_filter(event):
 
 
 guard_duty_high_sev_test = RuleTest(
-    name="UnauthorizedAccess, High-Sev Finding, dnyamoDB",
+    name="UnauthorizedAccess high-sev finding, from dynamodb",
     expected_result=True,
     log={
         "type": "UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS",
