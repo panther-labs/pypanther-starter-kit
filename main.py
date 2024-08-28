@@ -12,7 +12,7 @@ base_rules = get_panther_rules(
     #     LogType.PANTHER_AUDIT,
     # ],
     # default_severity=[
-    #     Severity.MEDIUM,
+    #     Severity.CRITICAL,
     #     Severity.HIGH,
     # ],
 )
