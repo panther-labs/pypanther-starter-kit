@@ -1,6 +1,5 @@
 from pypanther import LogType, RuleTest
-from pypanther.rules.aws_guardduty_rules.aws_guardduty_high_sev_findings import AWSGuardDutyHighSeverityFinding
-from pypanther.wrap import exclude, include
+from pypanther.rules.aws_guardduty.aws_guardduty_high_sev_findings import AWSGuardDutyHighSeverityFinding
 
 sensitive_aws_services = {"s3", "dynamodb", "iam", "secretsmanager", "ec2"}
 
@@ -31,6 +30,8 @@ guard_duty_high_sev_test = RuleTest(
 def apply_overrides(rules):
     for rule in rules:
         if LogType.AWS_GUARDDUTY in rule.log_types:
-            exclude(guard_duty_discovery_filter)(rule)
-            include(guard_duty_sensitive_service_filter)(rule)
+            rule.extend(
+                exclude_filters=[guard_duty_discovery_filter],
+                include_filters=[guard_duty_sensitive_service_filter],
+            )
     AWSGuardDutyHighSeverityFinding.tests.append(guard_duty_high_sev_test)
