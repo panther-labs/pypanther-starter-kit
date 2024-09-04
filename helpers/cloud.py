@@ -22,21 +22,6 @@ def account_lookup_by_id(account_id):
     return "Account ID not found in lookup. Please update helpers.CLOUD_ACCOUNTS"
 
 
-def update_account_id_tests(rules):
-    sample_account_id = (
-        list(prod_account_ids)[0]
-        if prod_account_ids
-        else list(dev_accounts_ids)[0]
-        if dev_accounts_ids
-        else list(test_accounts_ids)[0]
-        if test_accounts_ids
-        else "123456789012"
-    )
-    for rule in rules:
-        for test in rule.tests:
-            test.log["recipientAccountId"] = sample_account_id
-
-
 # Pre-calculates a set of IDs to be used in overrides and filters
 prod_account_ids = {account["accountID"] for account in CLOUD_ACCOUNTS["Production"]}
 dev_accounts_ids = {account["accountID"] for account in CLOUD_ACCOUNTS["Development"]}

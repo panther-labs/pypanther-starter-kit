@@ -1,8 +1,8 @@
-from pypanther import get_panther_rules, get_rules, register
-
 from helpers.custom_log_types import CustomLogType
 from overrides import aws_cloudtrail, aws_guardduty
 from rules import examples
+
+from pypanther import get_panther_rules, get_rules, register
 
 # Load base rules
 base_rules = get_panther_rules(

@@ -1,4 +1,4 @@
-from helpers.cloud import account_lookup_by_id, prod_account_ids, update_account_id_tests
+from helpers.cloud import account_lookup_by_id, prod_account_ids
 
 from pypanther import Severity
 from pypanther.rules.aws_cloudtrail.aws_cloudtrail_stopped import AWSCloudTrailStopped
@@ -42,7 +42,6 @@ def apply_overrides(rules):
 
     # Add an include filter with the prod_account_filter function
     AWSCloudTrailStopped.extend(include_filters=[prod_account_filter])
-    update_account_id_tests([AWSCloudTrailStopped])
 
     # Override a rule's title function
     AWSConsoleRootLogin.title = root_login_account_title
