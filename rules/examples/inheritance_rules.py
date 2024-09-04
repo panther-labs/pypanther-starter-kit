@@ -1,7 +1,6 @@
-from pypanther import Rule, RuleTest, Severity
-from pypanther.wrap import include
-
 from helpers.custom_log_types import CustomLogType
+
+from pypanther import Rule, RuleTest, Severity
 
 
 # Base rule for a custom log type.
@@ -25,7 +24,7 @@ class HostIDSBaseRule(Rule):
                 "event_time": "2021-01-01T00:00:00Z",
                 "user_agent": "Chrome",
             },
-        )
+        ),
     ]
 
     _compromise_type = "compromise"
@@ -52,11 +51,11 @@ class HostIDSBaseRule(Rule):
 
 
 # Inherited rule #1
-@include(lambda e: e.get("event_type") == "c2")
 class HostIDSCommandAndControl(HostIDSBaseRule):
     id = "HostIDS.CommandAndControl"
     enabled = True
     threshold = 18
+    include_filters = [lambda e: e.get("event_type") == "c2"]
     _compromise_type = "command and control"
 
     tests = [
@@ -70,7 +69,7 @@ class HostIDSCommandAndControl(HostIDSBaseRule):
                 "event_time": "2021-01-01T00:00:00Z",
                 "user_agent": "Chrome",
             },
-        )
+        ),
     ]
 
 
@@ -94,7 +93,7 @@ class HostIDSMalware(HostIDSBaseRule):
                 "event_time": "2021-01-01T00:00:00Z",
                 "user_agent": "Chrome",
             },
-        )
+        ),
     ]
 
     def rule(self, event):

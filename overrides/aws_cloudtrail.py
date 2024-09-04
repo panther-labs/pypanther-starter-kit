@@ -1,17 +1,19 @@
-from pypanther import Severity
-from pypanther.rules.aws_cloudtrail_rules.aws_cloudtrail_stopped import AWSCloudTrailStopped
-from pypanther.rules.aws_cloudtrail_rules.aws_console_root_login import AWSConsoleRootLogin
-from pypanther.wrap import include
+from helpers.cloud import account_lookup_by_id, prod_account_ids
 
-from helpers.cloud import account_lookup_by_id, prod_account_ids, update_account_id_tests
+from pypanther import Severity
+from pypanther.rules.aws_cloudtrail.aws_cloudtrail_stopped import AWSCloudTrailStopped
+from pypanther.rules.aws_cloudtrail.aws_console_root_login import AWSConsoleRootLogin
 
 
 def root_login_account_title(_, event):
     """
     Generates a dynamic alert title for root logins using account mappings.
+
     Args:
+    ----
         _ (self): The PantherRule instance (unused)
         event (dict): The CloudTrail event
+
     """
     ip_address = event.get("sourceIPAddress")
     account = account_lookup_by_id(event.get("recipientAccountId"))
@@ -39,8 +41,7 @@ def apply_overrides(rules):
     )
 
     # Add an include filter with the prod_account_filter function
-    include(prod_account_filter)(AWSCloudTrailStopped)
-    update_account_id_tests([AWSCloudTrailStopped])
+    AWSCloudTrailStopped.extend(include_filters=[prod_account_filter])
 
     # Override a rule's title function
     AWSConsoleRootLogin.title = root_login_account_title
