@@ -52,8 +52,7 @@ class OCSFBruteForceConnections(ScheduledRule):
 
     window_mins = 30
     schedule = Schedule(
-        # Every 30m
-        cron_expression="*/30 * * * *",
+        cron_expression="*/30 * * * *",  # Every 30m
         timeout_mins=5,
     )
 
@@ -77,8 +76,128 @@ class OCSFBruteForceConnections(ScheduledRule):
         return f"Endpoint [{row.get('dst_endpoint.interface_uid')}] has high refused connections in the past 20m"
 
 
+class SnowflakeDataExfil(ScheduledRule):
+    id = "Snowflake.DataExfil"
+    enabled = True
+    default_severity = Severity.HIGH
+
+    window_mins = 60 * 24  # 24 hours - Alluding to "lookback window"
+    schedule = Schedule(
+        cron_expression="* */12 * * *",  # Every 12 hours
+        timeout_mins=15,
+    )
+
+    def query(self):
+        return f"""
+            panther_logs.public.signals
+            | where p_event_time > time.ago({self.window_mins}m)
+            | sequence
+                e1=(p_rule_id="{SnowflakeTempStageCreated.id}")
+                e2=(p_rule_id="{SnowflakeCopyIntoStorage.id}")
+                e3=(p_rule_id="{SnowflakeFileDownloaded.id}")
+            | match on("stage")
+        """
+
+
+class SnowflakeFileDownloaded(ScheduledRule):
+    id = "Snowflake.FileDownloaded"
+    description = "Query to detect Snowflake data being downloaded"
+    enabled = True
+    create_alert = False
+
+    schedule = Schedule(
+        cron_expression="* 17 * * *",
+        timeout_mins=5,
+    )
+
+    query = """
+    SELECT 
+        user_name,
+        role_name,
+        start_time AS p_event_time,
+        query_type,
+        execution_status,
+        regexp_substr(query_text, 'GET\\s+(\\$\\$|\\\')?@([a-zA-Z0-9_\\.]+)', 1, 1, 'i', 2) as stage,
+        regexp_substr(query_text, 'GET\\s+(\\$\\$|\\\')?@([a-zA-Z0-9_\\./]+)(\\$\\$|\\\')?\\s', 1, 1, 'i', 2) as path,
+        query_text
+    FROM 
+        SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+    WHERE 
+        query_type = 'GET_FILES' 
+        AND path IS NOT NULL 
+        AND p_occurs_since('1 day')
+        AND execution_status = 'SUCCESS'
+    LIMIT 100
+    """
+
+
+class SnowflakeCopyIntoStorage(ScheduledRule):
+    id = "Snowflake.CopyIntoStorage"
+    description = "Query to detect Snowflake data being copied into storage"
+
+    enabled = True
+    create_alert = False
+
+    schedule = Schedule(
+        cron_expression="* 17 * * *",
+        timeout_mins=5,
+    )
+
+    query = """
+    SELECT 
+        user_name,
+        role_name,
+        start_time AS p_event_time,
+        query_type,
+        execution_status,
+        regexp_substr(query_text, 'COPY\\s+INTO\\s+(\\$\\$|\\\')?@([a-zA-Z0-9_\\.]+)', 1, 1, 'i', 2) as stage,
+        regexp_substr(query_text, 'COPY\\s+INTO\\s+(\\$\\$|\\\')?@([a-zA-Z0-9_\\./]+)(\\$\\$|\\\')?\\s+FROM', 1, 1, 'i', 2) as path,
+        query_text
+    FROM 
+        SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+    WHERE 
+        query_type = 'UNLOAD' 
+        AND stage IS NOT NULL 
+        AND p_occurs_since('1 day')
+        AND execution_status = 'SUCCESS'
+    LIMIT 100
+    """
+
+
+class SnowflakeTempStageCreated(ScheduledRule):
+    id = "Snowflake.TempStageCreated"
+    description = "Query to detect Snowflake temporary stages created"
+
+    enabled = True
+    create_alert = False
+
+    schedule = Schedule(
+        cron_expression="* 17 * * *",
+        timeout_mins=5,
+    )
+
+    query = """
+    SELECT 
+        user_name,
+        role_name,
+        start_time AS p_event_time,
+        query_type,
+        execution_status,
+        regexp_substr(query_text, 'CREATE\\s+(OR\\s+REPLACE\\s+)?(TEMPORARY\\s+|TEMP\\s+)STAGE\\s+(IF\\s+NOT\\s+EXISTS\\s+)?([a-zA-Z0-9_\\.]+)', 1, 1, 'i', 4) as stage,
+        query_text
+    FROM 
+        SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+    WHERE 
+        query_type = 'CREATE' 
+        AND stage IS NOT NULL 
+        AND p_occurs_since('1 day') 
+        AND execution_status = 'SUCCESS'
+    LIMIT 100
+    """
+
+
 class SnowflakeExternalShareQuery(Query):
-    id = "Snowflake.External.Shares"
+    id = "Snowflake.ExternalShares"
     description = "Query to detect Snowflake data transfers across cloud accounts"
     query = """
         SELECT 
@@ -98,8 +217,7 @@ class SnowflakeExteralShare(ScheduledRule):
     id = "Snowflake.External.Shares"
     enabled = True
     schedule = Schedule(
-        # Every Hour
-        CronExpression="0 0 * * *",
+        CronExpression="0 0 * * *",  # Every Hour
         TimeoutMinutes=2,
     )
     query = SnowflakeExternalShareQuery
