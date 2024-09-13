@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "3.11.*"
 pypanther = "^0.1.1a48"
+pydantic = "^2.7.1"
 panther-core = ">= 0.11.2, < 1.0"
 
 [tool.poetry.group.dev.dependencies]
