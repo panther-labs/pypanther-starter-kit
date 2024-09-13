@@ -1,5 +1,5 @@
 from pypanther import LogType, RuleTest
-from pypanther.rules.aws_guardduty.aws_guardduty_high_sev_findings import AWSGuardDutyHighSeverityFinding
+from pypanther.rules.aws_guardduty import AWSGuardDutyHighSeverityFinding
 
 sensitive_aws_services = {"s3", "dynamodb", "iam", "secretsmanager", "ec2"}
 
