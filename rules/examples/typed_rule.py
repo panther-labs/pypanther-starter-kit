@@ -9,7 +9,7 @@ from pydantic import NonNegativeInt, PositiveInt
 from pypanther import LogType, Rule, RuleTest, Severity
 from pypanther.base import SeverityType
 from pypanther.helpers.base import aws_guardduty_context
-from pypanther.severity import SEVERITY_DEFAULT, Severity
+from pypanther.severity import SEVERITY_DEFAULT
 from time import strptime
 
 
