@@ -11,7 +11,7 @@ pypanther = "^0.1.1a48"
 panther-core = ">= 0.11.2, < 1.0"
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.10.0"
+mypy = "^1.10.0, < 1.11"
 ruff = "^0.4.9"
 
 [build-system]
