@@ -2,7 +2,7 @@ from typing import Dict
 
 from pypanther import LogType, Rule, RuleTest, Severity
 
-from content.rules.examples.sample_logs import sample_alb_log
+from content.rules.sample_logs import sample_alb_log
 
 aws_alb_high_vol_400s_tests = [
     RuleTest(
