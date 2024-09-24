@@ -134,6 +134,8 @@ Each of these components plays a vital role in the functionality of the `pypanth
 
 The `main.py` and all other content in this repository serve as examples to build your configuration. For full documentation and functionality, [check out our docs](https://docs.panther.com/).
 
+In order to interact with Panther, you will need to set up your Panther API key and Panther host. This can be done by setting the `PANTHER_API_KEY` and `PANTHER_API_HOST` environment variables.
+
 ## CI/CD Workflow
 
 An example [GitHub workflow](https://github.com/panther-labs/pypanther-starter-kit/blob/main/.github/workflows/upload.yml) is provided to upload your configured ruleset to your Panther instance when PRs are merged to `release` branch.  `API_HOST` and `API_TOKEN` must be configured in your GitHub repository secrets.
