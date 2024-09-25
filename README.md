@@ -2,7 +2,7 @@
 
 `pypanther` is a Python-native detection framework designed to significantly reduce the overhead of rule management, ensure smooth integration with CI/CD workflows, and enhance the effectiveness and actionability of alerts.
 
-The starer kit serves as a bootstrap for the `pypanther` framework, providing a foundational structure and essential components to accelerate the rule development process. If you are not yet a Panther user, please reach out to us to (get a demo)[https://panther.com/product/request-a-demo/]!
+The starer kit serves as a bootstrap for the `pypanther` framework, providing a foundational structure and essential components to accelerate the rule development process. If you are not yet a Panther user, please reach out to us to [get a demo](https://panther.com/product/request-a-demo/)!
 
 Leveraging `pypanther` leads to a more agile and responsive SecOps program, enabling teams to focus more on mitigating risks and responding to incidents instead of managing custom scripts for detection engineering.
 
