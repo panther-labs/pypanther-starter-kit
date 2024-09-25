@@ -2,7 +2,7 @@ from pypanther import Severity
 from pypanther.rules.aws_cloudtrail import AWSCloudTrailStopped
 from pypanther.rules.aws_cloudtrail import AWSConsoleRootLogin
 
-from helpers.cloud import account_lookup_by_id, prod_account_ids
+from content.helpers.cloud import account_lookup_by_id, prod_account_ids
 
 
 def root_login_account_title(_, event):

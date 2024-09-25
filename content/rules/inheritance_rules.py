@@ -1,6 +1,6 @@
 from pypanther import Rule, RuleTest, Severity
 
-from helpers.custom_log_types import CustomLogType
+from content.helpers.custom_log_types import CustomLogType
 
 
 # Base rule for a custom log type.
