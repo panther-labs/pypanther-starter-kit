@@ -1,6 +1,6 @@
 # pypanther-starter-kit
 
-`pypanther` is a new Python-native detection framework designed to significantly reduce the overhead of rule management, ensure smooth integration with CI/CD workflows, and enhance the effectiveness and actionability of alerts.
+`pypanther` is a Python-native detection framework designed to significantly reduce the overhead of rule management, ensure smooth integration with CI/CD workflows, and enhance the effectiveness and actionability of alerts.
 
 The starer kit serves as a bootstrap for the `pypanther` framework, providing a foundational structure and essential components to accelerate the rule development process. If you are not yet a Panther user, please reach out to us to (get a demo)[https://panther.com/product/request-a-demo/]!
 
@@ -40,59 +40,25 @@ register(git_rules)
 
 ## Getting Started
 
-To get started with the starter kit, clone the repo, install dependencies, and then run tests to ensure everything is set up correctly.
+Clone the repo, install dependencies, and then run tests to ensure everything is set up correctly.
 
 ### Prerequisites
 
 Before you begin, make sure you have the following installed:
 
-- Git
-- Make
-- Python
-- Poetry
-
-Ensure that Poetry is using the correct version of Python by running `poetry env use path/to/python3.11`
-
-### Local Environment Recommendations
-
-Setting up your local environment correctly is crucial for running a Python project. There are various methods to do this, but the Panther team recommends the following setup. This approach helps avoid issues with package and Python versions and makes it easier to get support from the Panther team if problems arise.
-
-#### Brew
-
-Some of the following tools are installed via [Homebrew](https://brew.sh/). 
-Please install it if you are on MacOS using your preferred method on their site.
-
-#### Make
-
-If you don't use `make`, we encourage you to [download](https://formulae.brew.sh/formula/make) it. 
-This project utilizes a [Makefile](./Makefile) to help with running common test and lint commands.
-
-#### Python Version
-
-If you are currently using a different Python version management tool or have Python installed through another method, but decide to switch to [Pyenv](https://github.com/pyenv/pyenv), we recommend uninstalling all other Python versions to prevent any potential issues or confusion.
-
-A handy way to check that python is installed is by running:
-```bash
-which python
-```
-
-After installing Pyenv, you can set your python version by running the following:
-```bash
-pyenv install 3.11
-pyenv global 3.11
-```
-
-#### Virtual Environment
-
-We recommend `poetry` due to its ease-of-use, extensibility, and sophisticated dependency conflict resolution algorithm.
-
-To download, follow the instructions [here](https://python-poetry.org/docs/), which recommend installing with [pipx](https://pipx.pypa.io/stable/installation/). You could also install using `pip,` which comes with python natively.
-
-`poetry` utilizes a `pyproject.toml` file for its configuration settings. The starter kit already has [already defined one](./pyproject.toml) for you.
-
-Once you install `poetry`, **all python commands should be run inside the poetry shell**. Even in your CI pipeline.
-More info on that [here](https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment).
-We have a [Makefile](./Makefile) that takes care of that for you.
+- **Git**
+- **Brew**: Some of the tools above are installed via [Homebrew](https://brew.sh/). Please install it if you are on MacOS using your preferred method on their site.
+- **Make**: If you don't use `make`, we encourage you to [download](https://formulae.brew.sh/formula/make) it. This project utilizes a [Makefile](./Makefile) to help with running common test and lint commands.
+- **Python**: If you are currently using a different Python version management tool or have Python installed through another method, but decide to switch to [Pyenv](https://github.com/pyenv/pyenv), we recommend uninstalling all other Python versions to prevent any potential issues or confusion. A handy way to check that python is installed is by running:
+    ```bash
+    which python
+    ```
+    After installing Pyenv, you can set your python version by running the following:
+    ```bash
+    pyenv install 3.11
+    pyenv global 3.11
+    ```
+- **Poetry**: Ensure that Poetry is installed and using the correct version of Python by running `poetry env use path/to/python3.11`. We recommend `poetry` due to its ease-of-use, extensibility, and sophisticated dependency conflict resolution algorithm. To download, follow the instructions [here](https://python-poetry.org/docs/), which recommend installing with [pipx](https://pipx.pypa.io/stable/installation/). `poetry` utilizes a `pyproject.toml` file for its configuration settings, and the starter kit already has [already defined one](./pyproject.toml) for you. Once you install `poetry`, **all python commands should be run inside the poetry shell**, even in your CI pipeline, more info on that [here](https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment).
 
 ### Starter Kit Installation
 
