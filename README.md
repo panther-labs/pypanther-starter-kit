@@ -38,18 +38,25 @@ for rule in git_rules:
 register(git_rules)
 ```
 
-## Getting Started
+# Getting Started
 
 Clone the repo, install dependencies, and then run tests to ensure everything is set up correctly.
 
-### Prerequisites
+## Prerequisites
 
 Before you begin, make sure you have the following installed:
 
-- **Git**
-- **Brew**: Some of the tools above are installed via [Homebrew](https://brew.sh/). Please install it if you are on MacOS using your preferred method on their site.
-- **Make**: If you don't use `make`, we encourage you to [download](https://formulae.brew.sh/formula/make) it. This project utilizes a [Makefile](./Makefile) to help with running common test and lint commands.
-- **Python**: If you are currently using a different Python version management tool or have Python installed through another method, but decide to switch to [Pyenv](https://github.com/pyenv/pyenv), we recommend uninstalling all other Python versions to prevent any potential issues or confusion. A handy way to check that python is installed is by running:
+- **Brew**: Install [Homebrew](https://brew.sh/) if you are on macOS.
+- **Git**: Ensure that Git is installed on your system. You can verify the installation by running the following command:
+    ```bash
+    git --version
+    ```
+    If Git is not installed, you can download it from the [official website](https://git-scm.com/) or install it using a package manager like Homebrew on macOS:
+    ```bash
+    brew install git
+    ```
+- **Make**: Install [Make](https://formulae.brew.sh/formula/make) if you don't have it. This project uses a [Makefile](./Makefile) for workflows.
+- **Python**: We recommend using [Pyenv](https://github.com/pyenv/pyenv) for managing Python versions. Uninstall other Python versions to avoid conflicts. Verify Python installation with:
     ```bash
     which python
     ```
@@ -58,9 +65,9 @@ Before you begin, make sure you have the following installed:
     pyenv install 3.11
     pyenv global 3.11
     ```
-- **Poetry**: Ensure that Poetry is installed and using the correct version of Python by running `poetry env use path/to/python3.11`. We recommend `poetry` due to its ease-of-use, extensibility, and sophisticated dependency conflict resolution algorithm. To download, follow the instructions [here](https://python-poetry.org/docs/), which recommend installing with [pipx](https://pipx.pypa.io/stable/installation/). `poetry` utilizes a `pyproject.toml` file for its configuration settings, and the starter kit already has [already defined one](./pyproject.toml) for you. Once you install `poetry`, **all python commands should be run inside the poetry shell**, even in your CI pipeline, more info on that [here](https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment).
+- **Poetry**: Install Poetry and ensure it uses the correct Python version with `poetry env use path/to/python3.11`. Follow the [installation guide](https://python-poetry.org/docs/) and use [pipx](https://pipx.pypa.io/stable/installation/). The starter kit includes a pre-configured [pyproject.toml](./pyproject.toml). Run all Python commands inside the Poetry shell, including in your CI pipeline. More details [here](https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment).
 
-### Starter Kit Installation
+## Starter Kit Installation
 
 Follow these steps to get your development environment set up:
 
@@ -96,9 +103,9 @@ Follow these steps to get your development environment set up:
 
     When developing, you may also use `pypanther test` for access to more command-line flags and arguments.
 
-## Development
+# Development
 
-### File Structure
+## File Structure
 
 `pypanther`'s primary configuration file `main.py` is located in the root directory and the remainder content is organized into several key directories under the `content/` folder:
 
@@ -110,13 +117,13 @@ Follow these steps to get your development environment set up:
 
 - **`content/overrides/`**: The `overrides/` directory is dedicated for managing your overrides to built-in rules. We recommend defining new rule override functions (like title or severity), attribute overrides (like include_filters), and mass-updates using for loops using the `apply_overrides()` function. Check the `content/rules` folder for an example.
 
-### Setting Your Configuration
+## Setting Your Configuration
 
 The `main.py` (and all other content in this repository) serves as examples to build your configuration. Read the [full documentation](https://docs.panther.com/detections/pypanther) to learn all of the paradigms.
 
 To interact with your Panther instance via `pypanther upload`, you'll need to set the `PANTHER_API_KEY` and `PANTHER_API_HOST` environment variables either using `.env` files or `export`s.
 
-## CI/CD
+# CI/CD
 
 An example [GitHub workflow](https://github.com/panther-labs/pypanther-starter-kit/blob/main/.github/workflows/upload.yml) is provided to upload your configured ruleset to your Panther instance when PRs are merged to `release` branch.  `API_HOST` and `API_TOKEN` must be configured in your GitHub repository secrets.
 
@@ -128,6 +135,6 @@ An example process might look like this:
 
 - Merging the PR to `release` automatically updates Panther, making the `release` branch the single source of truth for your Panther configuration!
 
-## License
+# License
 
 This project is licensed under the [AGPL-3.0 License] - see the LICENSE.txt file for details.
