@@ -103,6 +103,30 @@ Follow these steps to get your development environment set up:
 
     When developing, you may also use `pypanther test` for access to more command-line flags and arguments.
 
+### `pypanther` CLI
+
+The `pypanther` CLI is a command-line tool designed to build, test, and upload to a Panther instance. Below are the available commands:
+
+- **version**: Display the current version of the `pypanther` CLI.
+- **list**: List managed or registered content.
+    ```bash
+    pypanther list rules --log-types AWS.CloudTrail --attributes id enabled tags
+    ```
+- **get**: Retrieve the source code of a specific rule ID including any applied overrides.
+    ```bash
+    pypanther get rule <id>
+    ```
+- **test**: Run tests on all your rules, providing a summary of results.
+    ```bash
+    pypanther test --tags Exfiltration
+    ```
+- **upload**: Upload your rules to Panther.
+    ```bash
+    pypanther upload --verbose --output json
+    ```
+
+Use `pypanther <command> --help` for more details on each command.
+
 ## Development
 
 ### File Structure
