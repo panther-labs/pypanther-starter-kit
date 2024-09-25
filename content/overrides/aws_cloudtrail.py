@@ -1,6 +1,5 @@
 from pypanther import Severity
-from pypanther.rules.aws_cloudtrail import AWSCloudTrailStopped
-from pypanther.rules.aws_cloudtrail import AWSConsoleRootLogin
+from pypanther.rules.aws_cloudtrail import AWSCloudTrailStopped, AWSConsoleRootLogin
 
 from content.helpers.cloud import account_lookup_by_id, prod_account_ids
 

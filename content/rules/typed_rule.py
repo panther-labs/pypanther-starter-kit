@@ -2,6 +2,7 @@
 # so if you inherit from it, explicit typing is optional.  However, if you want to
 # be explicit about the types, you can do so like this:
 
+from time import strptime
 from typing import Dict, List
 
 from panther_core.enriched_event import PantherEvent
@@ -10,7 +11,6 @@ from pypanther import LogType, Rule, RuleTest, Severity
 from pypanther.base import SeverityType
 from pypanther.helpers.base import aws_guardduty_context
 from pypanther.severity import SEVERITY_DEFAULT
-from time import strptime
 
 
 class MyTypedRule(Rule):
