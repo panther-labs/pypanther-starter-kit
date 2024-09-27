@@ -6,8 +6,9 @@ The starer kit serves as a bootstrap for the `pypanther` framework, providing a 
 
 Leveraging `pypanther` leads to a more agile and responsive SecOps program, enabling teams to focus more on mitigating risks and responding to incidents instead of managing custom scripts for detection engineering.
 
-## Example `main.py`
-Here's an example `main.py` using GitHub rules:
+## Example
+
+Here's an example `main.py` getting all GitHub rules, setting overrides, adding a filter, and registering:
 
 ```python
 from pypanther import get_panther_rules, register, LogType, Severity
@@ -27,7 +28,7 @@ GitHubActionFailed.MONITORED_ACTIONS = {
     "main_app": ["code_scanning"],
 }
 
-# A new filter function to check for bot activity
+# Write a new filter function to check for bot activity
 def github_is_bot_filter(event):
     return bool(event.get("actor_is_bot"))
 
@@ -48,7 +49,7 @@ Clone the repo, install dependencies, and then run tests to ensure everything is
 Before you begin, make sure you have the following installed:
 
 - **Brew**: Install [Homebrew](https://brew.sh/) if you are on macOS.
-- **Git**: Ensure that Git is installed on your system. You can verify the installation by running the following command:
+- **Git**: Validate Git is installed by running the following command:
     ```bash
     git --version
     ```
@@ -57,7 +58,7 @@ Before you begin, make sure you have the following installed:
     brew install git
     ```
 - **Make**: Install [Make](https://formulae.brew.sh/formula/make) if you don't have it. This project uses a [Makefile](./Makefile) for workflows.
-- **Python**: We recommend using [Pyenv](https://github.com/pyenv/pyenv) for managing Python versions. Uninstall other Python versions to avoid conflicts. Verify Python installation with:
+- **Python**: We recommend using [Pyenv](https://github.com/pyenv/pyenv) for managing Python versions and uninstalling other Python versions to avoid conflicts. You can verify your current active Python configuration with:
     ```bash
     which python
     ```
@@ -72,15 +73,13 @@ Before you begin, make sure you have the following installed:
 
 Follow these steps to configure your local development environment:
 
-1. **Clone the repository**
+1. **Clone the repo**
     ```bash
     git clone git@github.com:panther-labs/pypanther-starter-kit.git
     cd pypanther-starter-kit
     ```
 
-2. **Install dependencies**
-
-    Set up the environment and installs required Python packages:
+2. **Install dependencies and set up environment**
 
     ```bash
     make install
@@ -88,13 +87,11 @@ Follow these steps to configure your local development environment:
 
 3. **Validate installation**
 
-    To validate that everything is set up correctly, you can run the predefined tests using the following command:
-
     ```bash
     make test
     ```
 
-    When developing, prefix commands with `poetry run ...`
+    *Note: When developing and running tests, prefix commands with `poetry run ...`*
 
 ### `pypanther` CLI
 
@@ -122,7 +119,7 @@ Use `pypanther <command> --help` for more details on each command.
 
 ## Development
 
-`pypanther` development is ongoing and currently supports:
+`pypanther` is under active development and currently supports the following analysis types:
 
 | Analysis Type       | Supported           |
 |---------------------|---------------------|
@@ -135,7 +132,7 @@ Use `pypanther <command> --help` for more details on each command.
 | Policies            | :construction:      |
 | Correlation Rules   | :construction:      |
 
-`packs` have been replaced by the `main.py` and `get_panther_rules`
+*Note: `packs` have been replaced by the `main.py` and `get_panther_rules`*
 
 ### File Structure
 
