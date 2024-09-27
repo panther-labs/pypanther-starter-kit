@@ -119,20 +119,43 @@ Use `pypanther <command> --help` for more details on each command.
 
 ## Development
 
-`pypanther` is under active development and currently supports the following analysis types:
+### Migration
+
+`pypanther` is under active development and currently supports the following analysis types.
 
 | Analysis Type       | Supported           |
 |---------------------|---------------------|
 | Streaming Rules     | :white_check_mark:  |
 | Data Models         | :white_check_mark:  |
 | Helper Functions    | :white_check_mark:  |
+| Built-in Content    | :white_check_mark:  |
 | Scheduled Rules     | :construction:      |
 | Lookups/Enrichments | :construction:      |
 | Saved Queries       | :construction:      |
 | Policies            | :construction:      |
 | Correlation Rules   | :construction:      |
 
-*Note: `packs` have been replaced by the `main.py` and `get_panther_rules`*
+*Note: `packs` have been replaced by the `main.py` and the `get_panther_rules` function.*
+
+As more analysis types are supported, you can declare and upload using `pypanther` with the following guidance:
+1. Make sure you are on the latest `pypanther-starter-kit` and `pypanther` library by running `make update`
+2. Customize your `main.py` and configure overrides. We recommend starting with 3-5 rules.
+3. Upload using `pypanther upload` to validate alerts are firing and other content is as you expect it
+4. Remove the `-prototype` content ID suffix by adding the following to your `main.py` file before `register()`:
+```python
+for rule in panther_rules:
+    rule.id = rule.id.replace("-prototype", "")
+```
+5. To stop managing them with `panther-analysis`, update your CI commands with a `--filter` flag:
+```bash
+$ panther_analysis_tool upload --filter AnalysisType!=pack RuleID!=<RULE ID 1>,<RULE ID 2>...
+```
+You may also filter out entire analysis types with:
+```bash
+panther_analysis_tool upload --filter AnalysisType!=pack,rule,...
+```
+
+Once `pypanther` is generally available, the `prototype` suffix will be removed.
 
 ### File Structure
 
