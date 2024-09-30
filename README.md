@@ -6,7 +6,9 @@ The starer kit serves as a bootstrap for the `pypanther` framework, providing a 
 
 Leveraging `pypanther` leads to a more agile and responsive SecOps program, enabling teams to focus more on mitigating risks and responding to incidents instead of managing custom scripts for detection engineering.
 
-Here's an example `main.py` centered on GitHub rules:
+## Example
+
+Here's an example `main.py` getting all GitHub rules, setting overrides, adding a filter, and registering:
 
 ```python
 from pypanther import get_panther_rules, register, LogType, Severity
@@ -23,18 +25,18 @@ GitHubActionFailed.extend(
     tags=["CorpSec"],
 )
 GitHubActionFailed.MONITORED_ACTIONS = {
-	"main_app": ["code_scanning"],
+    "main_app": ["code_scanning"],
 }
 
-# A filter function to check for repo automation
+# Write a new filter function to check for bot activity
 def github_is_bot_filter(event):
-	return bool(event.get("actor_is_bot"))
+    return bool(event.get("actor_is_bot"))
 
-# Excluding this activity from our built-in rules
+# Add the filter to all git_rules to exclude bot activity
 for rule in git_rules:
-	rule.extend(exclude_filters=[is_bot])
+    rule.extend(exclude_filters=[is_bot])
 
-# Registering and enabling rules to be uploaded and tested
+# Register and enable rules to be uploaded and tested
 register(git_rules)
 ```
 
@@ -47,7 +49,7 @@ Clone the repo, install dependencies, and then run tests to ensure everything is
 Before you begin, make sure you have the following installed:
 
 - **Brew**: Install [Homebrew](https://brew.sh/) if you are on macOS.
-- **Git**: Ensure that Git is installed on your system. You can verify the installation by running the following command:
+- **Git**: Validate Git is installed by running the following command:
     ```bash
     git --version
     ```
@@ -56,7 +58,7 @@ Before you begin, make sure you have the following installed:
     brew install git
     ```
 - **Make**: Install [Make](https://formulae.brew.sh/formula/make) if you don't have it. This project uses a [Makefile](./Makefile) for workflows.
-- **Python**: We recommend using [Pyenv](https://github.com/pyenv/pyenv) for managing Python versions. Uninstall other Python versions to avoid conflicts. Verify Python installation with:
+- **Python**: We recommend using [Pyenv](https://github.com/pyenv/pyenv) for managing Python versions and uninstalling other Python versions to avoid conflicts. You can verify your current active Python configuration with:
     ```bash
     which python
     ```
@@ -67,41 +69,29 @@ Before you begin, make sure you have the following installed:
     ```
 - **Poetry**: Install Poetry and ensure it uses the correct Python version with `poetry env use path/to/python3.11`. Follow the [installation guide](https://python-poetry.org/docs/) and use [pipx](https://pipx.pypa.io/stable/installation/). The starter kit includes a pre-configured [pyproject.toml](./pyproject.toml). Run all Python commands inside the Poetry shell, including in your CI pipeline. More details [here](https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment).
 
-### Starter Kit Installation
+### Starter Kit Setup
 
-Follow these steps to get your development environment set up:
+Follow these steps to configure your local development environment:
 
-1. **Clone the repository**
-
-    First, clone the repository to your local machine using Git:
-
+1. **Clone the repo**
     ```bash
     git clone git@github.com:panther-labs/pypanther-starter-kit.git
+    cd pypanther-starter-kit
     ```
 
-    Navigate into the `pypanther-starter-kit` directory:
-
-2. **Install dependencies**
-
-    Use the `make` command to install the necessary dependencies:
+2. **Install dependencies and set up environment**
 
     ```bash
     make install
     ```
 
-    This command sets up the environment and installs all the required Python packages.
-
-3. **Running Tests**
-
-    To validate that everything is set up correctly, you can run the predefined tests using the following command:
+3. **Validate installation**
 
     ```bash
     make test
     ```
 
-    This command runs the test suite and outputs the results, allowing you to verify that the installation was successful and that the project is working as expected.
-
-    When developing, you may also use `pypanther test` for access to more command-line flags and arguments.
+    *Note: When developing and running tests, prefix commands with `poetry run ...`*
 
 ### `pypanther` CLI
 
@@ -128,6 +118,44 @@ The `pypanther` CLI is a command-line tool designed to build, test, and upload t
 Use `pypanther <command> --help` for more details on each command.
 
 ## Development
+
+### Migration
+
+`pypanther` is under active development and currently supports the following analysis types.
+
+| Analysis Type       | Supported           |
+|---------------------|---------------------|
+| Streaming Rules     | :white_check_mark:  |
+| Data Models         | :white_check_mark:  |
+| Helper Functions    | :white_check_mark:  |
+| Built-in Content    | :white_check_mark:  |
+| Scheduled Rules     | :construction:      |
+| Lookups/Enrichments | :construction:      |
+| Saved Queries       | :construction:      |
+| Policies            | :construction:      |
+| Correlation Rules   | :construction:      |
+
+*Note: `packs` have been replaced by the `main.py` and the `get_panther_rules` function.*
+
+As more analysis types are supported, you can declare and upload using `pypanther` with the following guidance:
+1. Make sure you are on the latest `pypanther-starter-kit` and `pypanther` library by running `make update`
+2. Customize your `main.py` and configure overrides. We recommend starting with 3-5 rules.
+3. Upload using `pypanther upload` to validate alerts are firing and other content is as you expect it
+4. Remove the `-prototype` content ID suffix by adding the following to your `main.py` file before `register()`:
+```python
+for rule in panther_rules:
+    rule.id = rule.id.replace("-prototype", "")
+```
+5. To stop managing them with `panther-analysis`, update your CI commands with a `--filter` flag:
+```bash
+$ panther_analysis_tool upload --filter AnalysisType!=pack RuleID!=<RULE ID 1>,<RULE ID 2>...
+```
+You may also filter out entire analysis types with:
+```bash
+panther_analysis_tool upload --filter AnalysisType!=pack,rule,...
+```
+
+Once `pypanther` is generally available, the `prototype` suffix will be removed.
 
 ### File Structure
 
