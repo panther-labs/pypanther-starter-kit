@@ -26,4 +26,4 @@ aws_cloudtrail.apply_overrides(base_rules)
 aws_guardduty.apply_overrides(base_rules)
 
 # Register all rules
-register(base_rules + custom_rules)
+register(custom_rules)
