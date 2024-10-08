@@ -49,7 +49,7 @@ class MockTestRule(Rule):
                 RuleMock(
                     # Mock the method inside() with a side effect that checks if the action is "Blocked"
                     object_name="inside",
-                    side_effect=lambda e: bool(e.get("action") == "Blocked"),
+                    side_effect=lambda e: e.get("action") == "Blocked",
                 )
             ],
             log={"action": "Blocked", "internalIp": ""},
