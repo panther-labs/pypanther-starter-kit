@@ -22,6 +22,7 @@ class MockTestRule(Rule):
     create_alert = False
 
     INSIDE: list[str] = []
+
     def inside(self, event):
         return self.INSIDE
 
