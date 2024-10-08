@@ -21,10 +21,12 @@ class MockTestRule(Rule):
     default_severity = Severity.INFO
     create_alert = False
 
-    VARIABLE: list[str] = []
+    INSIDE: list[str] = []
+    def inside(self, event):
+        return self.INSIDE
 
     def rule(self, event):
-        return self.VARIABLE != []
+        return self.INSIDE != []
 
     tests = [
         RuleTest(
@@ -32,8 +34,8 @@ class MockTestRule(Rule):
             expected_result=True,
             mocks=[
                 RuleMock(
-                    # Mock the object VARIABLE with a new object ["test"]
-                    object_name="VARIABLE",
+                    # Mock the object INSIDE with a new object ["test"]
+                    object_name="INSIDE",
                     new=["test"],
                 )
             ],
@@ -44,9 +46,9 @@ class MockTestRule(Rule):
             expected_result=True,
             mocks=[
                 RuleMock(
-                    # Mock the method rule() with a side effect that checks if the action is "Blocked"
-                    object_name="rule",
-                    side_effect=lambda e: e.get("action") == "Blocked",
+                    # Mock the method inside() with a side effect that checks if the action is "Blocked"
+                    object_name="inside",
+                    side_effect=lambda e: bool(e.get("action") == "Blocked"),
                 )
             ],
             log={"action": "Blocked", "internalIp": ""},
@@ -56,8 +58,8 @@ class MockTestRule(Rule):
             expected_result=True,
             mocks=[
                 RuleMock(
-                    # Mock the method rule() with a return value of True
-                    object_name="rule",
+                    # Mock the method inside() with a return value of True
+                    object_name="inside",
                     return_value=True,
                 )
             ],
