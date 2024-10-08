@@ -24,7 +24,6 @@ def prod_account_filter(event):
     Uses CloudTrail events to check if an account ID is in the list of production accounts.
     This uses a variable from the helpers/cloud module.
     """
-    # TODO() Change this to use event.udm('account_id')
     return event.get("recipientAccountId") in prod_account_ids
 
 
