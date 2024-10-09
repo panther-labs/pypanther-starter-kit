@@ -21,7 +21,7 @@ custom_rules = get_rules(module=rules)
 custom_rules = [rule for rule in custom_rules if not any(custom in rule.log_types for custom in CustomLogType)]
 
 # Apply overrides
-apply_overrides(overrides, base_rules)
+apply_overrides(module=overrides, rules=base_rules)
 
 # Register all rules
 register(base_rules + custom_rules)
