@@ -44,7 +44,6 @@ aws_alb_high_vol_400s_tests = [
     RuleTest(
         name="ELB 200s, with a domain",
         expected_result=False,
-        expected_title="High volume of web port 4xx errors to [example.com] in account [112233445566]",
         expected_alert_context={
             "elb": "app/web/22222f55555e618c",
             "actionsExecuted": ["forward"],
