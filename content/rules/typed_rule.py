@@ -3,7 +3,7 @@
 # be explicit about the types, you can do so like this:
 
 from time import strptime
-from typing import Dict, List, Mapping
+from typing import Dict, List
 
 from panther_core.enriched_event import PantherEvent
 from pydantic import NonNegativeInt, PositiveInt
@@ -46,8 +46,7 @@ class MyTypedRule(Rule):
             return Severity.CRITICAL
         return SEVERITY_DEFAULT
 
-
-    def alert_context(self, event: Mapping) -> dict:
+    def alert_context(self, event: PantherEvent) -> dict:
         return aws_guardduty_context(event)
 
     tests: List[RuleTest] = [
