@@ -902,13 +902,13 @@ typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
 name = "pypanther"
-version = "0.1.1a49"
+version = "0.1.1a47"
 description = ""
 optional = false
 python-versions = "==3.11.*"
 files = [
-    {file = "pypanther-0.1.1a49-py3-none-any.whl", hash = "sha256:28213aa20319db10c2e0b948c8fb3a2ad2e3519009c4d3c4e76877fc741a22df"},
-    {file = "pypanther-0.1.1a49.tar.gz", hash = "sha256:affd7f0424eb092fd227e4719eb0bfa099b6ac6f02b169d410e39cdf83b533b9"},
+    {file = "pypanther-0.1.1a47-py3-none-any.whl", hash = "sha256:bac8113d79aed9e89e9f2d41d553d55200d33197f26e2ada0f08bdfe3ed9c632"},
+    {file = "pypanther-0.1.1a47.tar.gz", hash = "sha256:05dd391edc430f96d3357231ac98f66844ae282d3e18a0594ed9880354a1a154"},
 ]
 
 [package.dependencies]
@@ -919,7 +919,7 @@ colorama = ">=0.4.6,<0.5.0"
 dynaconf = ">=3.2.5,<4.0.0"
 gql = ">=3.5.0,<4.0.0"
 jsonpath-ng = ">=1.6.1,<2.0.0"
-panther-core = ">=0.11.2,<1.0"
+panther-core = ">=0.10,<1.0"
 panther-detection-helpers = ">=0.4.0,<0.5.0"
 policyuniverse = ">=1.5.1.20231109,<2.0.0.0"
 prettytable = ">=3.10.0,<4.0.0"
@@ -1250,4 +1250,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.*"
-content-hash = "84fe531be030ab1227440a41abaab39bd5fa1e024a889aeba3b7bb6d24105c2a"
+content-hash = "04c5d91398caa80cfc3cc3df05e4ccb1ac5172f7c034fdd41fc26db0fa70334d"
