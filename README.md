@@ -186,4 +186,4 @@ An example process might look like this:
 
 ## License
 
-This project is licensed under the [AGPL-3.0 License] - see the LICENSE.txt file for details.
+This project is licensed under the [Apache 2.0 License] - see the LICENSE.txt file for details.
