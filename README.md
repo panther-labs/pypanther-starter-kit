@@ -2,9 +2,15 @@
 
 `pypanther` is a Python-native detection framework designed to significantly reduce the overhead of rule management, ensure smooth integration with CI/CD workflows, and enhance the effectiveness and actionability of alerts.
 
+`pypanther` is a Python library designed to streamline how security teams create, customize, and manage detection rules as code. With `pypanther`, you can:
+- Flexibly define rule packs based on use case
+- Rapidly customize and tune rules
+- Modify with overrides, filters, and inheritance
+- Streamline Git-based collaboration
+
 The starer kit serves as a bootstrap for the `pypanther` framework, providing a foundational structure and essential components to accelerate the rule development process. If you are not yet a Panther user, please reach out to us to [get a demo](https://panther.com/product/request-a-demo/)!
 
-Leveraging `pypanther` leads to a more agile and responsive SecOps program, enabling teams to focus more on mitigating risks and responding to incidents instead of managing custom scripts for detection engineering.
+Leveraging `pypanther` leads to a more agile and responsive SecOps program, enabling teams to focus more on mitigating risks and responding to incidents instead of managing custom scripts for detection engineering!
 
 ## Example
 
@@ -17,13 +23,17 @@ from pypanther.rules.github import GitHubActionFailed
 # Get all built-in GitHub Audit rules
 git_rules = get_panther_rules(log_types=[LogType.GITHUB_AUDIT])
 
-# Set overrides and tune your rule
+# Override the default rule values to enable and increase the deduplication window
 GitHubActionFailed.override(
     enabled=True, dedup_period_minutes=60*8,
 )
+
+# Add a tag along the default tags
 GitHubActionFailed.extend(
     tags=["CorpSec"],
 )
+
+# Set a required configuration on the rule for higher accuracy
 GitHubActionFailed.MONITORED_ACTIONS = {
     "main_app": ["code_scanning"],
 }
@@ -117,11 +127,11 @@ The `pypanther` CLI is a command-line tool designed to build, test, and upload t
 
 Use `pypanther <command> --help` for more details on each command.
 
-## Development
+## Trying PyPanther
 
-### Migration
+### Supported Types
 
-`pypanther` is under active development and currently supports the following analysis types.
+`pypanther` is under active development (available in closed beta for select customers) and currently supports the following analysis types:
 
 | Analysis Type       | Supported           |
 |---------------------|---------------------|
@@ -139,23 +149,10 @@ Use `pypanther <command> --help` for more details on each command.
 
 As more analysis types are supported, you can declare and upload using `pypanther` with the following guidance:
 1. Make sure you are on the latest `pypanther-starter-kit` and `pypanther` library by running `make update`
-2. Customize your `main.py` and configure overrides. We recommend starting with 3-5 rules.
-3. Upload using `pypanther upload` to validate alerts are firing and other content is as you expect it
-4. Remove the `-prototype` content ID suffix by adding the following to your `main.py` file before `register()`:
-```python
-for rule in panther_rules:
-    rule.id = rule.id.replace("-prototype", "")
-```
-5. To stop managing them with `panther-analysis`, update your CI commands with a `--filter` flag:
-```bash
-$ panther_analysis_tool upload --filter AnalysisType!=pack RuleID!=<RULE ID 1>,<RULE ID 2>...
-```
-You may also filter out entire analysis types with:
-```bash
-panther_analysis_tool upload --filter AnalysisType!=pack,rule,...
-```
+2. Customize your `main.py` to include panther-managed rules or custom rules. When testing, we recommend starting with only 3-5 rules.
+3. Use `pypanther upload` to validate alerts are firing and other content is as you expect it.
 
-Once `pypanther` is generally available, the `prototype` suffix will be removed.
+`pypanther` content mirrors `panther-analysis` with the addition of a `-prototype` suffix. You can use this to distinguish between v1 and v2 rules. Once `pypanther` is generally available, we will publish our migration tool and guidance to make the cutover as smooth as possible!
 
 ### File Structure
 
