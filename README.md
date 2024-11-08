@@ -1,16 +1,18 @@
 # pypanther-starter-kit
 
-`pypanther` is a Python-native detection framework designed to significantly reduce the overhead of rule management, ensure smooth integration with CI/CD workflows, and enhance the effectiveness and actionability of alerts.
+`pypanther` is a Python-native detection framework designed to reduce the overhead of rule management, ensure smooth integration with CI/CD workflows, and enhance the effectiveness and actionability of alerts. It is both a library and a CLI, acting as the evolution to our `panther-analysis` and `panther_analysis_tool` repositories.
 
-`pypanther` is a Python library designed to streamline how security teams create, customize, and manage detection rules as code. With `pypanther`, you can:
-- Flexibly define rule packs based on use case
-- Rapidly customize and tune rules
-- Modify with overrides, filters, and inheritance
-- Streamline Git-based collaboration
+`pypanther` streamlines how security teams create, customize, and manage detection rules as code:
+- Stay up-to-date with upstream rule content without a forked repo
+- Flexibly select desired rules based on security use cases
+- Modify Panther-managed rules with overrides, filters, and inheritance
+- Rapidly build, tune, and test custom rules
 
-The starer kit serves as a bootstrap for the `pypanther` framework, providing a foundational structure and essential components to accelerate the rule development process. If you are not yet a Panther user, please reach out to us to [get a demo](https://panther.com/product/request-a-demo/)!
+*Read our [full documentation](https://docs.panther.com/detections/pypanther) to learn about all features of the framework!*
 
-Leveraging `pypanther` leads to a more agile and responsive SecOps program, enabling teams to focus more on mitigating risks and responding to incidents instead of managing custom scripts for detection engineering!
+If you are not yet a Panther user, please reach out to us to [get a demo](https://panther.com/product/request-a-demo/)!
+
+The starer kit serves as a bootstrap for the `pypanther` framework, providing a folder structure and essential components to accelerate the rule development process. **All Panther-managed content lives in the `pypanther` Python package,** so it is not required to maintain a repository fork.
 
 ## Example
 
@@ -129,7 +131,7 @@ Use `pypanther <command> --help` for more details on each command.
 
 ## Trying PyPanther
 
-### Supported Types
+### Supported Content Types
 
 `pypanther` is under active development (available in closed beta for select customers) and currently supports the following analysis types:
 
@@ -154,9 +156,9 @@ As more analysis types are supported, you can declare and upload using `pypanthe
 
 `pypanther` content mirrors `panther-analysis` with the addition of a `-prototype` suffix. You can use this to distinguish between v1 and v2 rules. Once `pypanther` is generally available, we will publish our migration tool and guidance to make the cutover as smooth as possible!
 
-### File Structure
+### Required File Structure
 
-`pypanther`'s primary configuration file `main.py` is located in the root directory and the remainder content is organized into several key directories under the `content/` folder:
+`pypanther`'s primary configuration file `main.py` must be located in the root directory, and all content is organized into several key directories under the `content/` folder:
 
 - **`main.py`**: This is the main file of the repository. It controls the entire configuration for `pypanther`. The `main.py` file orchestrates which rules are imported and overridden with custom configurations.
 
