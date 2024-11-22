@@ -172,7 +172,7 @@ As more analysis types are supported, you can declare and upload using `pypanthe
 
 The `main.py` (and all other content in this repository) serves as examples to build your configuration. Read the [full documentation](https://docs.panther.com/detections/pypanther) to learn all of the paradigms.
 
-To interact with your Panther instance via `pypanther upload`, you'll need to set the `PANTHER_API_KEY` and `PANTHER_API_HOST` environment variables either using `.env` files or `export`s.
+To interact with your Panther instance via `pypanther upload`, you'll need to set the `PANTHER_API_TOKEN` and `PANTHER_API_HOST` environment variables either using `.env` files or `export`s.
 
 ## CI/CD
 
