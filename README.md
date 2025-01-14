@@ -79,7 +79,7 @@ Before you begin, make sure you have the following installed:
     pyenv install 3.11
     pyenv global 3.11
     ```
-- **Poetry**: Install Poetry and ensure it uses the correct Python version with `poetry env use path/to/python3.11`. Follow the [installation guide](https://python-poetry.org/docs/) and use [pipx](https://pipx.pypa.io/stable/installation/). The starter kit includes a pre-configured [pyproject.toml](./pyproject.toml). Run all Python commands inside the Poetry shell, including in your CI pipeline. More details [here](https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment).
+- **Poetry**: Install Poetry version 1.8.0 and ensure it uses the correct Python version with `poetry env use path/to/python3.11`. Follow the [installation guide](https://python-poetry.org/docs/) and use [pipx](https://pipx.pypa.io/stable/installation/). The starter kit includes a pre-configured [pyproject.toml](./pyproject.toml). Run all Python commands inside the Poetry shell, including in your CI pipeline. More details [here](https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment).
 
 ### Starter Kit Setup
 
