@@ -1,7 +1,5 @@
-[project]
-name = "pypanther-starter-kit"
-
 [tool.poetry]
+name = "pypanther-starter-kit"
 version = "0.1.0"
 description = ""
 authors = ["Panther Labs <pypi@runpanther.io>"]
