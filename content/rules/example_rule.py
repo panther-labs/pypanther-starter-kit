@@ -8,19 +8,6 @@ aws_alb_high_vol_400s_tests = [
     RuleTest(
         name="ELB 400s, no domain",
         expected_result=False,
-        expected_title="High volume of web port 4xx errors to [None] in account [112233445566]",
-        expected_alert_context={
-            "elb": "app/web/22222f55555e618c",
-            "actionsExecuted": ["forward"],
-            "source_ip": None,
-            "target_port": 80,
-            "elb_status_code": 429,
-            "target_status_code": 429,
-            "user_agent": None,
-            "request_url": "https://ec2-55-22-444-111.us-east-1.compute.amazonaws.com:443/pagekit/index.php",
-            "mitre_technique": "Endpoint Denial of Service",
-            "mitre_tactic": "Impact",
-        },
         log=sample_alb_log,
     ),
     RuleTest(
@@ -44,18 +31,6 @@ aws_alb_high_vol_400s_tests = [
     RuleTest(
         name="ELB 200s, with a domain",
         expected_result=False,
-        expected_alert_context={
-            "elb": "app/web/22222f55555e618c",
-            "actionsExecuted": ["forward"],
-            "source_ip": None,
-            "target_port": 80,
-            "elb_status_code": 200,
-            "target_status_code": 200,
-            "user_agent": None,
-            "request_url": "https://ec2-55-22-444-111.us-east-1.compute.amazonaws.com:443/pagekit/index.php",
-            "mitre_technique": "Endpoint Denial of Service",
-            "mitre_tactic": "Impact",
-        },
         log=sample_alb_log
         | {
             "domainName": "example.com",
