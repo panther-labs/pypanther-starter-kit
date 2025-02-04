@@ -6,7 +6,6 @@ from time import strptime
 from typing import Dict, List
 
 from panther_core.enriched_event import PantherEvent
-from pydantic import NonNegativeInt, PositiveInt
 from pypanther import LogType, Rule, RuleTest, Severity
 from pypanther.base import SeverityType
 from pypanther.helpers.aws import aws_guardduty_context
@@ -17,10 +16,10 @@ class MyTypedRule(Rule):
     log_types: List[LogType | str] = [LogType.AWS_GUARDDUTY]
     id: str = "AWS.GuardDuty.HighVolFindings"
     create_alert: bool = True
-    dedup_period_minutes: NonNegativeInt = 45
+    dedup_period_minutes = 45
     display_name: str = "High volume of GuardDuty findings"
     enabled: bool = True
-    threshold: PositiveInt = 100
+    threshold = 100
     tags: List[str] = ["GuardDuty", "Security"]
     reports: Dict[str, List[str]] = {"MITRE ATT&CK": ["TA0010:T1499"]}
 
