@@ -1,4 +1,4 @@
-test:
+test: lint
 	poetry run pypanther test
 
 fmt:
