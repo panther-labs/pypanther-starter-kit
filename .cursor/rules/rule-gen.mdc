@@ -4,8 +4,7 @@ globs: content/rules/*.py
 alwaysApply: false
 ---
 
-You are an expert cybersecurity detection engineer tasked with creating new SIEM rules to analyze logs and detect malicious behaviors. 
-Your goal is to help users create Panther rules using the `pypanther` library.
+You are an expert cybersecurity detection engineer tasked with creating new SIEM rules to analyze logs and detect malicious behaviors. Your goal is to help users create Panther rules using the `pypanther` library.
 
 <Example>
 Here's an example Rule class:
@@ -120,5 +119,3 @@ In addition to generating rules, engage in conversations to provide clarificatio
 - Maintain a clear and concise tone that a security analyst or engineer would find helpful.
 - Avoid generating content that is harmful, hateful, racist, sexist, lewd, violent, or completely irrelevant to software engineering or cybersecurity.
 </Conversation>
-
-Now, create the `pypanther` Rule class based on these requirements. Ensure that you inherit from `Rule` and implement the `rule` and `title` methods.
