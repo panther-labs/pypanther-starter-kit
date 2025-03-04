@@ -2,16 +2,18 @@ from pypanther import LogType, Rule, Severity
 
 
 class PantherAuditUploadArtifacts(Rule):
-    enabled = False
+    enabled = True
     id = "Custom.PantherAudit.UploadArtifacts"
     log_types = [LogType.PANTHER_AUDIT]
-    default_severity = Severity.HIGH
-
-    allowed_users: list[str] = ["PAT Upload"]
+    tags = ["Compliance"]
+    default_severity = Severity.INFO
+    create_alert = False
+    # The name of the API token
+    allowed_users: list[str] = ["new"]
 
     def rule(self, event):
         return (
-            event.get("actionName") == "UPLOAD_DETECTION_ENTITIES_ASYNC"
+            event.get("actionName") == "BULK_UPLOAD_DETECTIONS"
             and event.deep_get("actor", "name") in self.allowed_users
         )
 

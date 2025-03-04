@@ -1,21 +1,11 @@
-from pypanther import LogType, get_panther_rules, register
+from pypanther import LogType, get_panther_rules, register, get_rules
+from content import rules
 
+panther_audit_rules = get_panther_rules(log_types=[LogType.PANTHER_AUDIT])
+for rule in panther_audit_rules:
+    rule.create_alert = False
+    register(rule)
 
-# Load base rules
-register(
-    get_panther_rules(
-        log_types=[
-            LogType.GCP_AUDIT_LOG,
-            LogType.GCP_HTTP_LOAD_BALANCER,
-            LogType.PANTHER_AUDIT,
-            LogType.GSUITE_ACTIVITY_EVENT,
-        ],
-        # default_severity=[
-        #     Severity.CRITICAL,
-        #     Severity.HIGH,
-        # ],
-    )
-)
-
-# Load all local custom rules
-# custom_rules = get_rules(module=rules)
+# Load all local rules
+custom_rules = get_rules(module=rules)
+register(custom_rules)
