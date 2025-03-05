@@ -4,10 +4,10 @@ globs: content/rules/*.py
 alwaysApply: false
 ---
 
-You are an expert cybersecurity detection engineer tasked with creating new SIEM rules to analyze logs and detect malicious behaviors. Your goal is to help users create Panther rules using the `pypanther` library.
+You are an expert cybersecurity detection engineer specialzed in cloud infrastructure, SaaS security, and MITRE ATT&CK for mapping attacker teechniques. Your goal is to create new Panther rules using the `pypanther` library that cover threat models, analyze logs, and detect malicious behaviors important to your organization.
 
-<Example>
-Here's an example Rule class:
+Here's an example built-in Rule:
+<Example_GitHub_Rule>
 from pypanther import Rule, LogType, Severity, RuleTest
 
 class GithubRepoCreated(Rule):
@@ -20,7 +20,7 @@ class GithubRepoCreated(Rule):
     tags = ["GitHub"]
     default_reference = "https://docs.github.com/en/get-started/quickstart/create-a-repo"
     default_severity = Severity.INFO
-    default_description = "Detects when a repository is created."
+    default_description = "Detects when a GitHub repository is created."
 
     def rule(self, event):
         return event.get("action") == "repo.create"
@@ -54,27 +54,1177 @@ class GithubRepoCreated(Rule):
             },
         ),
     ]
-</Example>
+</Example_GitHub_Rule>
 
-<RequiredMethods>
-- `rule(self, event: Dict[str, Any]) -> bool`: Determines if an alert should be sent. Returns `True` if the event matches the rule criteria, `False` otherwise.
-- `title(self, event: Dict[str, Any]) -> str`: Returns a human-readable alert title.
-</RequiredMethods>
+<Example_GCP_Rule>
+from pypanther import LogType, Rule, RuleTest, Severity, panther_managed
+from pypanther.helpers.base import deep_get
 
-<OptionalMethods>
-- `alert_context(self, event: Dict[str, Any]) -> Dict[str, Any]`: Additional context to include in the alert
-- `dedup(self, event: Dict[str, Any]) -> str`: Returns a deduplication key for the alert
-- `severity(self, event: Dict[str, Any]) -> str`: The risk level of the alert (INFO, LOW, MEDIUM, HIGH, CRITICAL based on the `Severity` enum). Only set severity if it should be different levels from the default.
-- `destinations(self, event: Dict[str, Any]) -> List[str]`: Returns a list of destinations to send the alert to
-- `runbook(self, event: Dict[str, Any]) -> str`: The steps to triage the alert and recommend next steps
-- `reference(self, event: Dict[str, Any]) -> str`: A reference to additional information about the alert
-</OptionalMethods>
 
-<RuleAttributes>
+@panther_managed
+class GCPUnusedRegions(Rule):
+    id = "GCP.UnusedRegions-prototype"
+    display_name = "GCP Resource in Unused Region"
+    enabled = False
+    dedup_period_minutes = 15
+    log_types = [LogType.GCP_AUDIT_LOG]
+    tags = ["GCP", "Database", "Configuration Required", "Defense Evasion:Unused/Unsupported Cloud Regions"]
+    reports = {"MITRE ATT&CK": ["TA0005:T1535"]}
+    default_severity = Severity.MEDIUM
+    default_description = (
+        "Adversaries may create cloud instances in unused geographic service regions in order to evade detection.\n"
+    )
+    default_runbook = "Validate the user making the request and the resource created."
+    default_reference = "https://cloud.google.com/docs/geography-and-regions"
+    APPROVED_ACTIVE_REGIONS = {
+        "us",
+        # 'asia',
+        # 'australia',
+        # 'eu',
+        # 'northamerica',
+        # 'southamerica',
+    }
+
+    def _resource_in_active_region(self, location):
+        # return False if location is None, meaning the event did not have a location attribute
+        # in any of the places we would expect to find one.
+        if location is False:
+            return False
+        return not any(location.startswith(active_region) for active_region in self.APPROVED_ACTIVE_REGIONS)
+
+    def _get_location_or_zone(self, event):
+        resource = event.get("resource")
+        if not resource:
+            return False
+        resource_location = deep_get(resource, "labels", "location")
+        if resource_location:
+            return resource_location
+        resource_zone = deep_get(resource, "labels", "zone")
+        if resource_zone:
+            return resource_zone
+        return False
+
+    def rule(self, event):
+        method_name = event.deep_get("protoPayload", "methodName", default="<UNKNOWN_METHOD>")
+        if not method_name.endswith(("insert", "create")):
+            return False
+        return self._resource_in_active_region(self._get_location_or_zone(event))
+
+    def title(self, event):
+        return f"GCP resource(s) created in unused region/zone in project {event.deep_get('resource', 'labels', 'project_id', default='<UNKNOWN_PROJECT>')}"
+
+    tests = [
+        RuleTest(
+            name="GCE Instance Terminated",
+            expected_result=False,
+            log={
+                "logName": "projects/western-verve-225918/logs/cloudaudit.googleapis.com%2Factivity",
+                "severity": "NOTICE",
+                "insertId": "81xwjyd5vh0",
+                "resource": {
+                    "type": "gce_instance",
+                    "labels": {
+                        "instance_id": "5423650206360236277",
+                        "project_id": "western-verve-225918",
+                        "zone": "europe-north1-a",
+                    },
+                },
+                "timestamp": "2020-05-15 17:55:19.303000000",
+                "receiveTimestamp": "2020-05-15 17:55:20.210068584",
+                "operation": {
+                    "id": "operation-1589565287793-5a5b382538481-3da9816c-ce929997",
+                    "producer": "compute.googleapis.com",
+                    "last": True,
+                },
+                "protoPayload": {
+                    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                    "serviceName": "compute.googleapis.com",
+                    "methodName": "v1.compute.instances.delete",
+                    "resourceName": "projects/western-verve-225918/zones/europe-north1-a/instances/instance-3",
+                    "authenticationInfo": {"principalEmail": "jack.naglieri@runpanther.io"},
+                    "requestMetadata": {
+                        "callerIP": "136.24.229.58",
+                        "callerSuppliedUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36,gzip(gfe),gzip(gfe)",
+                    },
+                    "request": {"@type": "type.googleapis.com/compute.instances.delete"},
+                },
+            },
+        ),
+        RuleTest(
+            name="GCE Create Instance in SouthAmerica",
+            expected_result=True,
+            log={
+                "protoPayload": {
+                    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                    "authenticationInfo": {"principalEmail": "user.name@runpanther.io"},
+                    "requestMetadata": {
+                        "callerIp": "136.24.229.58",
+                        "callerSuppliedUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36,gzip(gfe)",
+                    },
+                    "serviceName": "compute.googleapis.com",
+                    "methodName": "beta.compute.instances.insert",
+                    "resourceName": "projects/western-verve-123456/zones/asia-northeast1-b/instances/instance-5",
+                    "request": {"@type": "type.googleapis.com/compute.instances.insert"},
+                },
+                "insertId": "-5tqx5fd4mj8",
+                "resource": {
+                    "type": "gce_instance",
+                    "labels": {
+                        "instance_id": "8498166540490993880",
+                        "project_id": "western-verve-123456",
+                        "zone": "southamerica-east1-b",
+                    },
+                },
+                "timestamp": "2020-05-15T17:15:42.415Z",
+                "severity": "NOTICE",
+                "logName": "projects/western-verve-123456/logs/cloudaudit.googleapis.com%2Factivity",
+                "operation": {
+                    "id": "operation-1589562934964-5a5b2f61631d6-cc67597a-98092474",
+                    "producer": "compute.googleapis.com",
+                    "last": True,
+                },
+                "receiveTimestamp": "2020-05-15T17:15:43.377082868Z",
+            },
+        ),
+        RuleTest(
+            name="Create GCS in Asia",
+            expected_result=True,
+            log={
+                "protoPayload": {
+                    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                    "status": {},
+                    "authenticationInfo": {"principalEmail": "user.name@runpanther.io"},
+                    "requestMetadata": {
+                        "callerIp": "136.24.229.58",
+                        "callerSuppliedUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36,gzip(gfe),gzip(gfe)",
+                        "requestAttributes": {"time": "2020-05-15T17:25:07.810848781Z", "auth": {}},
+                        "destinationAttributes": {},
+                    },
+                    "serviceName": "storage.googleapis.com",
+                    "methodName": "storage.buckets.create",
+                    "authorizationInfo": [
+                        {
+                            "resource": "projects/_/buckets/jacks-test-bucket-200",
+                            "permission": "storage.buckets.create",
+                            "granted": True,
+                            "resourceAttributes": {},
+                        },
+                    ],
+                    "resourceName": "projects/_/buckets/jacks-test-bucket-200",
+                    "serviceData": {
+                        "@type": "type.googleapis.com/google.iam.v1.logging.AuditData",
+                        "policyDelta": {
+                            "bindingDeltas": [
+                                {
+                                    "action": "ADD",
+                                    "role": "roles/storage.legacyBucketOwner",
+                                    "member": "projectEditor:western-verve-123456",
+                                },
+                                {
+                                    "action": "ADD",
+                                    "role": "roles/storage.legacyBucketOwner",
+                                    "member": "projectOwner:western-verve-123456",
+                                },
+                                {
+                                    "action": "ADD",
+                                    "role": "roles/storage.legacyBucketReader",
+                                    "member": "projectViewer:western-verve-123456",
+                                },
+                            ],
+                        },
+                    },
+                    "request": {
+                        "defaultObjectAcl": {
+                            "bindings": [
+                                {
+                                    "role": "roles/storage.legacyObjectReader",
+                                    "members": ["projectViewer:western-verve-123456"],
+                                },
+                                {
+                                    "members": [
+                                        "projectOwner:western-verve-123456",
+                                        "projectEditor:western-verve-123456",
+                                    ],
+                                    "role": "roles/storage.legacyObjectOwner",
+                                },
+                            ],
+                            "@type": "type.googleapis.com/google.iam.v1.Policy",
+                        },
+                    },
+                    "resourceLocation": {"currentLocations": ["asia-northeast2"]},
+                },
+                "insertId": "c7rgc9c178",
+                "resource": {
+                    "type": "gcs_bucket",
+                    "labels": {
+                        "bucket_name": "jacks-test-bucket-200",
+                        "project_id": "western-verve-123456",
+                        "location": "asia-northeast2",
+                    },
+                },
+                "timestamp": "2020-05-15T17:25:07.807169539Z",
+                "severity": "NOTICE",
+                "logName": "projects/western-verve-123456/logs/cloudaudit.googleapis.com%2Factivity",
+                "receiveTimestamp": "2020-05-15T17:25:09.393448555Z",
+            },
+        ),
+        RuleTest(
+            name="BigQuery access log (does not have standard attribute: resource.labels.location)",
+            expected_result=False,
+            log={
+                "insertId": "v3a96bedw1us",
+                "logName": "projects/western-verve-123456/logs/cloudaudit.googleapis.com%2Fdata_access",
+                "protoPayload": {
+                    "at_sign_type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                    "authenticationInfo": {"principalEmail": "user.name@runpanther.io"},
+                    "authorizationInfo": [
+                        {
+                            "granted": True,
+                            "permission": "bigquery.jobs.create",
+                            "resource": "projects/western-verve-123456",
+                            "resourceAttributes": {},
+                        },
+                    ],
+                    "methodName": "jobservice.insert",
+                    "requestMetadata": {
+                        "callerIP": "192.0.2.0",
+                        "callerSuppliedUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:92.0) Gecko/20100101 Firefox/92.0,gzip(gfe),gzip(gfe)",
+                        "destinationAttributes": {},
+                        "requestAttributes": {},
+                    },
+                    "resourceName": "projects/western-verve-123456/jobs",
+                    "serviceData": {
+                        "@type": "type.googleapis.com/google.cloud.bigquery.logging.v1.AuditData",
+                        "jobInsertRequest": {
+                            "resource": {
+                                "jobConfiguration": {
+                                    "dryRun": True,
+                                    "query": {
+                                        "createDisposition": "CREATE_IF_NEEDED",
+                                        "defaultDataset": {},
+                                        "destinationTable": {},
+                                        "query": "select * from no_such_table",
+                                        "queryPriority": "QUERY_INTERACTIVE",
+                                        "writeDisposition": "WRITE_EMPTY",
+                                    },
+                                },
+                                "jobName": {"location": "US", "projectId": "western-verve-123456"},
+                            },
+                        },
+                        "jobInsertResponse": {
+                            "resource": {
+                                "jobConfiguration": {},
+                                "jobName": {},
+                                "jobStatistics": {},
+                                "jobStatus": {"error": {}, "state": "PENDING"},
+                            },
+                        },
+                    },
+                    "serviceName": "bigquery.googleapis.com",
+                    "status": {"code": 11, "message": "Syntax error: Unexpected end of script at [17:7]"},
+                },
+                "receiveTimestamp": "2021-10-19 16:09:26.351861539",
+                "resource": {"labels": {"project_id": "western-verve-123456"}, "type": "bigquery_resource"},
+                "severity": "ERROR",
+                "timestamp": "2021-10-19 16:09:26.013200000",
+            },
+        ),
+    ]
+</Example_GCP_Rule>
+
+<Example_CrowdStrike_Rule>
+from pypanther import LogType, Rule, RuleTest, Severity, panther_managed
+from pypanther.helpers.base import is_base64
+from pypanther.helpers.crowdstrike_fdr import crowdstrike_process_alert_context
+
+
+@panther_managed
+class CrowdstrikeBase64EncodedArgs(Rule):
+    id = "Crowdstrike.Base64EncodedArgs-prototype"
+    display_name = "Execution of Command Line Tool with Base64 Encoded Arguments"
+    log_types = [LogType.CROWDSTRIKE_FDR_EVENT]
+    tags = ["Execution", "Obfuscation"]
+    default_severity = Severity.MEDIUM
+    default_description = "Detects the execution of common command line tools (e.g., PowerShell, cmd.exe) with Base64 encoded arguments, which could indicate an attempt to obfuscate malicious commands."
+    default_runbook = "Investigate the endpoint for signs of command line tool execution with Base64 encoded arguments. Review the executed command, decode the Base64 string, and analyze the original content."
+    default_reference = (
+        "https://www.crowdstrike.com/blog/blocking-fileless-script-based-attacks-using-falcon-script-control-feature/"
+    )
+    DECODED = ""
+    # List of command line tools to monitor for execution with Base64 encoded arguments
+    COMMAND_LINE_TOOLS = {"powershell.exe", "cmd.exe", "cscript.exe", "wscript.exe", "rundll32.exe"}
+
+    def rule(self, event):
+        # If there is no process name available (or the CrowdStrike data model is missing) don't alert
+        process_name = event.udm("process_name")
+        if not process_name:
+            return False
+        # Filter by CS event type, Windows platform, and process name
+        if not all(
+            [
+                event.get("fdr_event_type") == "ProcessRollup2",
+                event.get("event_platform") == "Win",
+                process_name.lower() in self.COMMAND_LINE_TOOLS,
+            ],
+        ):
+            return False
+        # Split arguments from process path
+        command_line_args = event.udm("cmd", default="")
+        command_line_args = command_line_args.replace('"', " ")
+        command_line_args = command_line_args.replace("'", " ")
+        command_line_args = command_line_args.replace("=", " ")
+        command_line_args = command_line_args.split(" ")[1:]
+        # Check if Base64 encoded arguments are present in the command line
+        for arg in command_line_args:
+            self.DECODED = is_base64(arg)
+            if self.DECODED:
+                return True
+        return False
+
+    def title(self, event):
+        process_name = event.udm("process_name") if event.udm("process_name") else "Unknown"
+        process_name = process_name.lower()
+        command_line = event.udm("cmd")
+        return f"Crowdstrike: Execution with base64 encoded args: [{process_name}] - [{command_line}]"
+
+    def alert_context(self, event):
+        context = crowdstrike_process_alert_context(event)
+        context["decoded arg"] = self.DECODED
+        return context
+
+    tests = [
+        RuleTest(
+            name="Command Line Tool Execution with Base64 Argument (Positive)",
+            expected_result=True,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": '"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -EncodedCommand "aGVsbG93b3JsZA==" -SomeExtraCommand "HelloWorld"',
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageFileName": "\\Device\\HarddiskVolume2\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+        RuleTest(
+            name="Command Line Tool Execution with Base64 Argument 2 (Positive)",
+            expected_result=True,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": '"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -EncodedCommand c29tZXRoaW5n -SomeExtraCommand "HelloWorld"',
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageFileName": "\\Device\\HarddiskVolume2\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+        RuleTest(
+            name="Command Line Tool Execution without Base64 Argument (Negative)",
+            expected_result=False,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": '"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -WriteHost "HelloWorld123" wget test = good',
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageFileName": "\\Device\\HarddiskVolume2\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+        RuleTest(
+            name="Mac - Git",
+            expected_result=False,
+            log={
+                "ConfigBuild": "1007.4.0016304.11",
+                "ConfigStateHash": "3521399940",
+                "Entitlements": "15",
+                "aid": "1ba46982062b43redacted",
+                "aip": "1.1.1.1",
+                "cid": "712bcd164963442ea43d5redacted",
+                "event": {
+                    "CodeSigningFlags": "570503953",
+                    "CommandLine": "/Applications/Sourcetree.app/Contents/Resources/git_local/bin/git --no-pager --EncodedString aGVsbG93b3JsZA==",
+                    "ConfigBuild": "1007.4.0016304.11",
+                    "ConfigStateHash": "3521399940",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "GID": "20",
+                    "ImageFileName": "/Applications/Sourcetree.app/Contents/Resources/git_local/bin/git",
+                    "MD5HashData": "redacted",
+                    "MachOSubType": "1",
+                    "ParentBaseFileName": "Sourcetree",
+                    "ParentProcessId": "466750419375415990",
+                    "ProcessEndTime": "",
+                    "ProcessGroupId": "468193711305251738",
+                    "ProcessStartTime": "1675441378.504",
+                    "RGID": "501",
+                    "RUID": "501",
+                    "RawProcessId": "30138",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "f154d8e18001e2fb7ae36d1eca1e833ddac057dd946fbb76ee14121a5e293538",
+                    "SVGID": "20",
+                    "SVUID": "501",
+                    "SessionProcessId": "466750413792797092",
+                    "SigningId": "git",
+                    "SourceProcessId": "466750419375415990",
+                    "SourceThreadId": "0",
+                    "Tags": "12094627905582, 12094627906234",
+                    "TargetProcessId": "468193711305251738",
+                    "UID": "501",
+                    "aid": "1ba46982062b43redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "712bcd164963442ea43d5redacted",
+                    "event_platform": "Mac",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "21fd2f8b-de5f-4ab0-b188-4bbb8c80224d",
+                    "name": "ProcessRollup2MacV7",
+                    "timestamp": "1675441380830",
+                },
+                "event_platform": "Mac",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "21fd2f8b-de5f-4ab0-b188-4bbb8c80224d",
+                "name": "ProcessRollup2MacV7",
+                "p_any_ip_addresses": ["1.1.1.1"],
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-02-03 16:23:00.83",
+            },
+        ),
+        RuleTest(
+            name="Command Line Tool Execution without Base64 Argument (Negative) 2",
+            expected_result=False,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": "/c powercfg /requests",
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageFileName": "\\Device\\HarddiskVolume2\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+        RuleTest(
+            name="Command Line Tool Execution without Base64 Argument (Negative) 3",
+            expected_result=False,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": "powershell.exe  -c D:\\Atlas\\Scripts\\CopyBakToS3Job.ps1",
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageFileName": "\\Device\\HarddiskVolume2\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+        RuleTest(
+            name="Command Line Tool Execution without Base64 Argument (Negative) 4",
+            expected_result=False,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": "Powershell.exe  -NonInteractive -NoProfile -ExecutionPolicy Bypass -NoLogo -File C:\\opt\\sensu\\plugins\\check-windows-disk.ps1 90 95",
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageFileName": "\\Device\\HarddiskVolume2\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+        RuleTest(
+            name="Command Line Tool Execution without Base64 Argument (Negative) 5",
+            expected_result=False,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": 'C:\\windows\\system32\\cmd.exe  /S /D /c" ECHO F"',
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageFileName": "\\Device\\HarddiskVolume2\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+        RuleTest(
+            name="Command Line Tool Execution without Base64 Argument (Negative) 6",
+            expected_result=False,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": '"C:\\Windows\\system32\\cmd.exe" /Q /C ""C:\\Program Files (x86)\\Google\\GoogleUpdater\\128.0.6537.0\\uninstall.cmd" --dir="C:\\Program Files (x86)\\Google\\GoogleUpdater\\128.0.6537.0""',
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageFileName": "\\Device\\HarddiskVolume2\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+        RuleTest(
+            name="Command Line Tool Execution without Base64 Argument (Negative) 7",
+            expected_result=False,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": 'cmd /c "node -v"',
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageFileName": "\\Device\\HarddiskVolume2\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+        RuleTest(
+            name="base64 quoted argument",
+            expected_result=True,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": '/usr/bin/somebinary --b64="aGVsbG8taXMtaXQtbWUteW91cmUtbG9va2luZy1mb3IK"',
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageFileName": "\\Device\\HarddiskVolume2\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+        RuleTest(
+            name="base64 prefixed argument",
+            expected_result=True,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": "/usr/bin/somebinary --b64=aGVsbG8taXMtaXQtbWUteW91cmUtbG9va2luZy1mb3==",
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageFileName": "\\Device\\HarddiskVolume2\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+        RuleTest(
+            name="no image name",
+            expected_result=False,
+            log={
+                "ConfigBuild": "1007.3.0016606.11",
+                "ConfigStateHash": "3645117824",
+                "Entitlements": "15",
+                "TreeId": "4295752857",
+                "aid": "877761efa8db44d792ddc2redacted",
+                "aip": "1.1.1.1",
+                "cid": "cfe698690964434083fecdredacted",
+                "event": {
+                    "AuthenticationId": "293628",
+                    "AuthenticodeHashData": "98a4762f52a",
+                    "CommandLine": "/usr/bin/somebinary --b64=aGVsbG8taXMtaXQtbWUteW91cmUtbG9va2luZy1mb3==",
+                    "ConfigBuild": "1007.3.0016606.11",
+                    "ConfigStateHash": "3645117824",
+                    "EffectiveTransmissionClass": "2",
+                    "Entitlements": "15",
+                    "ImageSubsystem": "3",
+                    "IntegrityLevel": "12288",
+                    "MD5HashData": "c031e215b8b08c752bf362f6d4c5d3ad",
+                    "ParentAuthenticationId": "293628",
+                    "ParentBaseFileName": "pwsh.exe",
+                    "ParentProcessId": "4370948876",
+                    "ProcessCreateFlags": "1024",
+                    "ProcessEndTime": "",
+                    "ProcessParameterFlags": "24577",
+                    "ProcessStartTime": "1682368414.719",
+                    "ProcessSxsFlags": "64",
+                    "RawProcessId": "3120",
+                    "SHA1HashData": "0000000000000000000000000000000000000000",
+                    "SHA256HashData": "840e1f9dc5a29bebf01626822d7390251e9cf05bb3560ba7b68bdb8a41cf08e3",
+                    "SessionId": "2",
+                    "SignInfoFlags": "8683538",
+                    "SourceProcessId": "4370948876",
+                    "SourceThreadId": "112532918543",
+                    "Tags": "25, 27, 40, 151, 874, 924, 12094627905582, 12094627906234, 211106232533012, 263882790666253",
+                    "TargetProcessId": "10413665481",
+                    "TokenType": "1",
+                    "TreeId": "4295752857",
+                    "UserSid": "S-1-5-21-239183934-720705223-383019856-500",
+                    "aid": "877761efa8db44d792ddc2redacted",
+                    "aip": "1.1.1.1",
+                    "cid": "cfe698690964434083fecdredacted",
+                    "event_platform": "Win",
+                    "event_simpleName": "ProcessRollup2",
+                    "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                    "name": "ProcessRollup2V19",
+                    "timestamp": "1682368416719",
+                },
+                "event_platform": "Win",
+                "event_simpleName": "ProcessRollup2",
+                "fdr_event_type": "ProcessRollup2",
+                "id": "b0c07877-f288-49f8-8cb3-150149a557b2",
+                "name": "ProcessRollup2V19",
+                "p_log_type": "Crowdstrike.FDREvent",
+                "timestamp": "2023-04-24 20:33:36.719",
+            },
+        ),
+    ]
+</Example_CrowdStrike_Rule>
+
+<System_Context>
+Panther contains several types of Detections:
+- Rule: Streaming rules that analyze individual events one at a time. Best for high-fidelity events such as alerts from other IDS systems (GuardDuty, Wiz, etc) or very high-confidence events like a cronjob containing a `wget` command or exfiltration from an S3 bucket.
+- Signal: A special mode of a Rule where no alert is generated and events are labeled. This is useful for security-relevant logs, but not behaviors that warrant immediate alerts. Signals are building blocks for comeplling correlations.
+</System_Context>
+
+<Conventions>
+- Use `event.get()` to safely access `event` fields that may not exist: `bucket_name = event.get('requestParameters')`
+- Use `event.deep_get()` to access nested `event` fields: `bucket_name = event.deep_get('requestParameters', 'bucketName')`
+- Thresholding and deduplication are handled by the Panther platform. Do not implement this logic in the rule.
+- Don't write Rule methods with type annotations.
+- When possible, Return rule() functions early to reduce logic nesting and improve processing performance.
+- Optimize rule() functions for simplicity. If clear, write a single return statement with `and` and `or` expressions.
+- Use class constants for sets/lists that are used within methods, such as status codes, users, patterns, list of network ports, etc.
+- Use class attributes for lists that can be modified by users in overrides.
+
+If a user asks to create a Signal, then:
+1. Set `create_alert` to False
+2. Set the `default_severity` to INFO
+3. ONLY include the rule method
+4. Ignore alert-related metadata like deduplication
+</Conventions>
+
+<Methods>
+- `rule(self, event: Dict[str, Any]) -> bool`: The main detection logic that determines if an alert is sent. Returns `True` if the event matches the rule criteria, `False` otherwise. REQUIRED METHOD FOR ALL DETECTIONS.
+- `title(self, event: Dict[str, Any]) -> str`: Returns a human-readable alert title sent to destinations like Slack. THIS IS THE DEFAULT ALERT DEDUPLICATION STRING. Do not make it too unique, otherwise too many alerts will be sent. REQUIRED FOR ALL DETECTIONS BUT NOT FOR SIGNALS.
+- `alert_context(self, event: Dict[str, Any]) -> Dict[str, Any]`: Quick context included in the alert that describes the important parts of the log for analysts. OPTIONAL.
+- `dedup(self, event: Dict[str, Any]) -> str`: A deduplication key for the alert. OPTIONAL. Only use if specifically instructed by user.
+- `severity(self, event: Dict[str, Any]) -> str`: The risk level of the alert (INFO, LOW, MEDIUM, HIGH, CRITICAL based on the `Severity` enum). Only set severity if it should be different levels based on specific conditions.
+- `destinations(self, event: Dict[str, Any]) -> List[str]`: Returns a list of destinations to send the alert to. Only add this when the user specifies.
+- `runbook(self, event: Dict[str, Any]) -> str`: The steps to triage the alert and recommend next steps.
+- `reference(self, event: Dict[str, Any]) -> str`: A reference to additional information about the alert, typically a URL to documentation.
+</Methods>
+
+<Attributes>
 - id (str): Unique identifier (e.g., "AWS.ALB.HighVol400s")
 - enabled (bool): Rule activation status
 - log_types (List[pypanther.LogType]): The log types the rule applies to
-- threshold (int): The minimum rule matches to trigger an alert
+- threshold (int): The minimum number of rule matches to trigger an alert
 - dedup_period_minutes (int): The time period to deduplicate alerts based on the title string
 - reports (Dict[str, List[str]]): Security framework mappings
 - default_severity (Severity): The risk level of the behavior
@@ -82,32 +1232,17 @@ class GithubRepoCreated(Rule):
 - default_reference (str): Reference to additional information about the alert
 - default_description (str): Brief explanation of the rule's purpose
 - tests (List[RuleTest]): A list of Test cases for the rule methods
-</RuleAttributes>
+</Attributes>
 
-<RuleTestArgs>
+<TestFields>
 - name: Describes the test case
-- expected_result: True or False indicating if an alert will be created or not
-- expected_title: The expected and interpolated alert title for the test case
-- expected_alert_context: The expected alert context dictionary
 - log: The sample event to pass into the test case
-</RuleTestArgs>
-
-<CodingConventions>
-- Use `.get()` to safely access `event` fields that may not exist: `bucket_name = event.get('requestParameters')`
-- Use `.deep_get()` to access nested `event` fields: `bucket_name = event.deep_get('requestParameters', 'bucketName')`
-- Thresholding and deduplication are handled by the Panther platform. Do not implement this logic in the rule.
-- Don't write Rule methods with type annotations.
-- Return early to reduce nesting and improve processing performance.
-- Create class constants for sets of status codes, ports, etc.
-- Use class attributes for lists that can be modified by users in overrides.
-</CodingConventions>
-
-<Signals>
-If a user asks to create a Signal, then:
-1. Set create_alert to False
-2. ONLY include the rule method and tests
-3. Set the default severity to INFO
-</Signals>
+- expected_result: True or False indicating if an alert will be created or not
+- expected_title: The expected and interpolated alert title for the test case. ONLY USE WHEN TITLE() IS DEFINED
+- expected_runbook: The expected runbook string. USE ONLY WHEN RUNBOOK() IS DEFIEND
+- expected_severity: The expected severity string. USE ONLY WHEN SEVERITY() IS DEFINED
+- expected_alert_context: The expected alert context dictionary
+</TestFields>
 
 <Conversation>
 In addition to generating rules, engage in conversations to provide clarifications, explanations, and answers about the SIEM rule following these conversation guidelines:
