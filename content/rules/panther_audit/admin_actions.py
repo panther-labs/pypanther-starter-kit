@@ -29,7 +29,6 @@ class PantherAdminActions(Rule):
         "UPDATE_API_TOKEN",
         "CREATE_RSA_KEY",
         "UPDATE_SAML_SETTINGS",
-        "GET_SAML_SETTINGS",
         
         # Alert Configuration
         "CREATE_ALERT_DESTINATION",
@@ -39,7 +38,6 @@ class PantherAdminActions(Rule):
         # System Configuration
         "UPDATE_GENERAL_SETTINGS",
         "UPDATE_UNIVERSAL_SETTINGS",
-        "GET_SUPPORT_LOGIN_CONFIG",
         "UPDATE_SUPPORT_LOGIN_SETTINGS",
         
         # Cloud Account Management
