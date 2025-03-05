@@ -4,7 +4,7 @@
 
 ### 🚀 Key Features
 
-- **Simplified Rule Management**: Create and maintain detection rules in Python with built-in testing and validation
+- **Simple Rule Management**: Maintain detection rules in Python with built-in testing and validation
 - **CI/CD Integration**: Seamlessly integrate detections into your development workflow
 - **Enhanced Alerts**: Generate actionable alerts with rich context and flexible formatting
 - **Rule Customization**: Easily modify and extend existing rules with inheritance and overrides
@@ -36,37 +36,43 @@ pypanther-starter-kit/
 
 ## 💡 Example Usage
 
-Here's an example `main.py` getting all GitHub rules, setting overrides, adding a filter, and registering:
+Importing, overriding, and registering a single upstream rule:
+
+```python
+from pypanther import register
+from pypanther.rules.github import GitHubActionFailed
+
+# Configure and register a single rule
+GitHubActionFailed.override(
+    enabled=True,
+    dedup_period_minutes=60*8,  # 8-hour deduplication window
+)
+GitHubActionFailed.extend(tags=["CorpSec"])
+GitHubActionFailed.MONITORED_ACTIONS = {"main_app": ["code_scanning"]}
+register(GitHubActionFailed)
+```
+
+Mass-applying an exclude filter to all GitHub rules:
 
 ```python
 from pypanther import get_panther_rules, register, LogType, Severity
-from pypanther.rules.github import GitHubActionFailed
 
-# Get all built-in GitHub Audit rules
-git_rules = get_panther_rules(log_types=[LogType.GITHUB_AUDIT])
-
-# Override the default rule values to enable and increase the deduplication window
-GitHubActionFailed.override(enabled=True, dedup_period_minutes=60*8,
+# Get all GitHub Audit rules of Medium/High severity
+rules = get_panther_rules(
+    log_types=[LogType.GITHUB_AUDIT],
+    severity=[Severity.MEDIUM, Severity.HIGH]
 )
 
-# Add a tag along the default tags
-GitHubActionFailed.extend(tags=["CorpSec"],
-)
-
-# Set a required configuration on the rule for higher accuracy
-GitHubActionFailed.MONITORED_ACTIONS = {"main_app": ["code_scanning"],
-}
-
-# Write a new filter function to check for bot activity
+# Define a filter to exclude bot activity
 def github_is_bot_filter(event):
     return bool(event.get("actor_is_bot"))
 
-# Add the filter to all git_rules to exclude bot activity
-for rule in git_rules:
-    rule.extend(exclude_filters=[is_bot])
+# Apply the filter to all rules
+for rule in rules:
+    rule.extend(exclude_filters=[github_is_bot_filter])
 
-# Register and enable rules to be uploaded and tested
-register(git_rules)
+# Register the filtered rules
+register(rules)
 ```
 
 ## 🛠️ Getting Started
