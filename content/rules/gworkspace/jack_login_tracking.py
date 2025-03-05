@@ -22,7 +22,7 @@ class GoogleWorkspaceLoginTracking(Rule):
             return False
         
         # Check if this is for the specific email we're tracking
-        return event.deep_get('actor', 'email') == 'jack@naglieri.co'
+        return event.deep_get('actor', 'email').startswith('jack@')
 
     def title(self, event):
         email = event.deep_get('actor', 'email')
@@ -43,7 +43,7 @@ class GoogleWorkspaceLoginTracking(Rule):
             expected_result=True,
             log={
                 'id': {'applicationName': 'login'},
-                'actor': {'email': 'jack@naglieri.co'},
+                'actor': {'email': 'jack@test.com'},
                 'parameters': {
                     'login_type': 'normal',
                     'browser': 'Chrome',
@@ -58,7 +58,7 @@ class GoogleWorkspaceLoginTracking(Rule):
             expected_result=False,
             log={
                 'id': {'applicationName': 'login'},
-                'actor': {'email': 'jack@naglieri.co'},
+                'actor': {'email': 'jack@test.com'},
                 'parameters': {
                     'login_type': 'reauth',
                     'browser': 'Chrome',
@@ -73,7 +73,7 @@ class GoogleWorkspaceLoginTracking(Rule):
             expected_result=False,
             log={
                 'id': {'applicationName': 'drive'},
-                'actor': {'email': 'jack@naglieri.co'},
+                'actor': {'email': 'jack@test.com'},
                 'parameters': {
                     'browser': 'Chrome',
                     'device_type': 'desktop'

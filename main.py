@@ -1,6 +1,7 @@
-from pypanther import LogType, get_panther_rules, register, get_rules
+from pypanther import LogType, get_panther_rules, register, get_rules, Severity
 from content import rules
 
+# Load Panther Audit rules
 panther_audit_rules = get_panther_rules(log_types=[LogType.PANTHER_AUDIT])
 register(panther_audit_rules)
 for rule in panther_audit_rules:
@@ -8,6 +9,45 @@ for rule in panther_audit_rules:
         continue
     rule.create_alert = False
 
-# Load all local rules
+# Load AWS rules
+aws_rules = get_panther_rules(
+    log_types=[
+        LogType.AWS_CLOUDTRAIL,
+        LogType.AWS_GUARDDUTY,
+    ],
+    default_severity=[
+        Severity.MEDIUM,
+        Severity.HIGH,
+        Severity.CRITICAL,
+        Severity.LOW,
+    ],
+    enabled=True
+)
+aws_ignore_rule_ids = [
+    "AWS.WAF.Disassociation-prototype",
+    "AWS.ConfigService.DisabledDeleted-prototype",
+    "AWS.IPSet.Modified-prototype",
+]
+for rule in aws_rules:
+    if rule.id.startswith("Standard") or rule.id.startswith("AWS.RDS"):
+        continue
+    register(rule)
+
+# Load GSuite rules
+gsuite_ignore_rule_ids = [
+    "GSuite.DocOwnershipTransfer-prototype",
+    "Google.Workspace.Apps.New.Mobile.App.Installed-prototype"
+]
+gsuite_rules = get_panther_rules(
+    log_types=[LogType.GSUITE_ACTIVITY_EVENT]
+)
+for rule in gsuite_rules:
+    if rule.id in gsuite_ignore_rule_ids:
+        continue
+    if rule.id == "GSuite.GovernmentBackedAttack-prototype":
+        rule.default_severity = Severity.HIGH
+    register(rule)
+
+# Load local rules
 custom_rules = get_rules(module=rules)
 register(custom_rules)
