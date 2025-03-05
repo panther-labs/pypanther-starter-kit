@@ -79,30 +79,16 @@ class PantherAdminActions(Rule):
         return f"Administrative Actions in Panther taken by [{actor_name}]"
 
     def alert_context(self, event):
-        actor_info = event.get("actor", {})
-        
-        context = {
-            "action": {
-                "name": event.get("actionName"),
-                "description": event.get("actionDescription"),
-                "result": event.get("actionResult"),
-                "parameters": event.get("actionParams"),
-                "details": event.get("actionDetails")
-            },
-            "actor": {
-                "id": actor_info.get("id"),
-                "type": actor_info.get("type"),
-                "name": actor_info.get("name"),
-                "attributes": actor_info.get("attributes")
-            },
+        return {
+            "actionName": event.get("actionName"),
+            "userName": event.deep_get("actor", "email"),
+            "fullName": event.deep_get("actor", "name"),
+            "roleName": event.deep_get("actor", "roleName"),
             "errors": event.get("errors", []),
             "source_ip": event.get("sourceIP"),
-            "x_forwarded_for": event.get("XForwardedFor", []),
             "user_agent": event.get("userAgent"),
             "timestamp": event.get("timestamp"),
-            "panther_version": event.get("pantherVersion")
-        }        
-        return context
+        }
 
     tests = [
         RuleTest(
