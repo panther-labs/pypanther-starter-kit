@@ -1,4 +1,4 @@
-from pypanther import Rule, LogType, Severity, RuleTest
+from pypanther import LogType, Rule, RuleTest, Severity
 
 
 class PantherAdminActions(Rule):
@@ -22,39 +22,33 @@ class PantherAdminActions(Rule):
         "DELETE_USER_ROLE",
         "UPDATE_USER_ROLE",
         "RESET_USER_PASSWORD",
-        
         # Authentication & Access Control
         "CREATE_API_TOKEN",
         "DELETE_API_TOKEN",
         "UPDATE_API_TOKEN",
         "CREATE_RSA_KEY",
         "UPDATE_SAML_SETTINGS",
-        
         # Alert Configuration
         "CREATE_ALERT_DESTINATION",
         "UPDATE_ALERT_DESTINATION",
         "DELETE_ALERT_DESTINATION",
-        
         # System Configuration
         "UPDATE_GENERAL_SETTINGS",
         "UPDATE_UNIVERSAL_SETTINGS",
         "UPDATE_SUPPORT_LOGIN_SETTINGS",
-        
         # Cloud Account Management
         "CREATE_CLOUD_ACCOUNT",
         "DELETE_CLOUD_ACCOUNT",
         "UPDATE_CLOUD_ACCOUNT",
-        
         # Detection Management
         "CREATE_DETECTION_PACK_SOURCE",
         "DELETE_DETECTION_PACK_SOURCE",
         "UPDATE_DETECTION_PACK_SOURCE",
         "UPDATE_DETECTION_PACK_STATE",
-        
         # Data Source Management
         "CREATE_LOG_SOURCE",
         "DELETE_LOG_SOURCE",
-        "UPDATE_LOG_SOURCE"
+        "UPDATE_LOG_SOURCE",
     }
 
     def rule(self, event):
@@ -62,7 +56,7 @@ class PantherAdminActions(Rule):
         action = event.get("actionName")
         if action not in self.ADMIN_ACTIONS:
             return False
-            
+
         # Always alert on successful admin actions
         if event.get("actionResult") == "SUCCEEDED":
             return True
@@ -71,7 +65,7 @@ class PantherAdminActions(Rule):
         # This helps reduce noise from simple validation failures
         if event.get("actionResult") in ["FAILED", "PARTIALLY_FAILED"]:
             return bool(event.get("errors"))
-            
+
         return False
 
     def title(self, event):
@@ -102,13 +96,13 @@ class PantherAdminActions(Rule):
                     "id": "user123",
                     "type": "USER",
                     "name": "admin.user",
-                    "attributes": {"email": "admin@example.com"}
+                    "attributes": {"email": "admin@example.com"},
                 },
                 "sourceIP": "192.0.2.1",
                 "userAgent": "Mozilla/5.0",
                 "timestamp": "2024-02-07T00:00:00Z",
-                "pantherVersion": "1.39.0"
-            }
+                "pantherVersion": "1.39.0",
+            },
         ),
         RuleTest(
             name="Failed SAML Settings Update",
@@ -116,18 +110,12 @@ class PantherAdminActions(Rule):
             log={
                 "actionName": "UPDATE_SAML_SETTINGS",
                 "actionResult": "FAILED",
-                "actor": {
-                    "id": "user456",
-                    "type": "USER",
-                    "name": "security.admin"
-                },
-                "errors": [{
-                    "message": "Invalid SAML certificate format"
-                }],
+                "actor": {"id": "user456", "type": "USER", "name": "security.admin"},
+                "errors": [{"message": "Invalid SAML certificate format"}],
                 "sourceIP": "192.0.2.2",
                 "timestamp": "2024-02-07T00:00:00Z",
-                "pantherVersion": "1.39.0"
-            }
+                "pantherVersion": "1.39.0",
+            },
         ),
         RuleTest(
             name="Non-administrative Action",
@@ -135,15 +123,11 @@ class PantherAdminActions(Rule):
             log={
                 "actionName": "LIST_USERS",
                 "actionResult": "SUCCEEDED",
-                "actor": {
-                    "id": "user789",
-                    "type": "USER",
-                    "name": "readonly.user"
-                },
+                "actor": {"id": "user789", "type": "USER", "name": "readonly.user"},
                 "sourceIP": "192.0.2.3",
                 "timestamp": "2024-02-07T00:00:00Z",
-                "pantherVersion": "1.39.0"
-            }
+                "pantherVersion": "1.39.0",
+            },
         ),
         RuleTest(
             name="Failed Admin Action Without Errors",
@@ -151,14 +135,10 @@ class PantherAdminActions(Rule):
             log={
                 "actionName": "CREATE_API_TOKEN",
                 "actionResult": "FAILED",
-                "actor": {
-                    "id": "user101",
-                    "type": "USER",
-                    "name": "service.account"
-                },
+                "actor": {"id": "user101", "type": "USER", "name": "service.account"},
                 "sourceIP": "192.0.2.4",
                 "timestamp": "2024-02-07T00:00:00Z",
-                "pantherVersion": "1.39.0"
-            }
-        )
-    ] 
+                "pantherVersion": "1.39.0",
+            },
+        ),
+    ]

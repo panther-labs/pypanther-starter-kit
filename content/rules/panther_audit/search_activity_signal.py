@@ -1,4 +1,4 @@
-from pypanther import Rule, LogType, RuleTest, Severity
+from pypanther import LogType, Rule, RuleTest, Severity
 
 
 class PantherAuditSearchActivity(Rule):
@@ -34,7 +34,7 @@ class PantherAuditSearchActivity(Rule):
         "DOWNLOAD_DATA_LAKE_QUERY",
         "DOWNLOAD_UBER_SEARCH_QUERY",
         "CANCEL_DATA_LAKE_QUERY",
-        "CANCEL_UBER_SEARCH"
+        "CANCEL_UBER_SEARCH",
     }
 
     def rule(self, event):
@@ -53,10 +53,8 @@ class PantherAuditSearchActivity(Rule):
                 "userAgent": "Mozilla/5.0",
                 "success": True,
                 "error": None,
-                "requestParameters": {
-                    "query": "SELECT * FROM data_lake.table LIMIT 10"
-                }
-            }
+                "requestParameters": {"query": "SELECT * FROM data_lake.table LIMIT 10"},
+            },
         ),
         RuleTest(
             name="Uber Search Execution",
@@ -69,10 +67,8 @@ class PantherAuditSearchActivity(Rule):
                 "userAgent": "Mozilla/5.0",
                 "success": True,
                 "error": None,
-                "requestParameters": {
-                    "searchTerm": "error"
-                }
-            }
+                "requestParameters": {"searchTerm": "error"},
+            },
         ),
         RuleTest(
             name="Non-search Operation",
@@ -83,7 +79,7 @@ class PantherAuditSearchActivity(Rule):
                 "timestamp": "2024-02-07T00:00:00Z",
                 "ipAddress": "192.0.2.1",
                 "userAgent": "Mozilla/5.0",
-                "success": True
-            }
-        )
-    ] 
+                "success": True,
+            },
+        ),
+    ]

@@ -1,14 +1,15 @@
-from pypanther import Rule, LogType, Severity, RuleTest
+from pypanther import LogType, Rule, RuleTest, Severity
 
 
 class PantherFailedActions(Rule):
     """Rule to detect failed actions in Panther audit logs."""
+
     id = "Custom.PantherAudit.FailedActions"
     display_name = "Panther Failed Actions"
     log_types = [LogType.PANTHER_AUDIT]
     threshold = 2
     enabled = True
-    dedup_period_minutes = 90
+    dedup_period_minutes = 30
     tags = ["Panther", "Audit", "Failed Actions", "Security"]
     default_severity = Severity.LOW
     default_reference = "https://docs.panther.com/system-configuration/panther-audit-logs"
@@ -26,41 +27,49 @@ class PantherFailedActions(Rule):
         "UPDATE_SAML_SETTINGS",
         "CREATE_ALERT_DESTINATION",
         "UPDATE_ALERT_DESTINATION",
-        "DELETE_ALERT_DESTINATION"
+        "DELETE_ALERT_DESTINATION",
     }
 
     def rule(self, event):
         # Check if the action failed
         action_result = event.get("actionResult", "")
-        return action_result in ["FAILED", "PARTIALLY_FAILED"]
+        if action_result not in ["FAILED", "PARTIALLY_FAILED"]:
+            return False
+
+        # Ignore GET actions as they are read-only
+        action_name = event.get("actionName", "")
+        if action_name.startswith("GET_"):
+            return False
+
+        return True
 
     def title(self, event):
         action = event.get("actionName", "<UNKNOWN_ACTION>")
         actor_info = event.get("actor", {})
         actor_name = actor_info.get("name", "<UNKNOWN_ACTOR>")
         actor_type = actor_info.get("type", "USER")
-        
+
         return f"Failed Panther Action: {action} by {actor_type} {actor_name}"
 
     def severity(self, event):
         action = event.get("actionName")
-        
+
         # Critical actions that failed should be high severity
         if action in self.CRITICAL_ACTIONS:
             return Severity.HIGH
-            
+
         # If there are multiple errors, increase severity
         errors = event.get("errors", [])
         if len(errors) > 1:
             return Severity.HIGH
-            
+
         return self.default_severity
 
     def runbook(self, event):
         action = event.get("actionName", "")
         errors = event.get("errors", [])
         error_messages = "\n".join([f"- {error.get('message', '')}" for error in errors])
-        
+
         return f"""
 ## Investigation Steps
 
@@ -101,16 +110,33 @@ class PantherFailedActions(Rule):
                     "id": "user123",
                     "type": "USER",
                     "name": "admin.user",
-                    "attributes": {"email": "admin@example.com"}
+                    "attributes": {"email": "admin@example.com"},
                 },
-                "errors": [{
-                    "message": "User already exists"
-                }],
+                "errors": [{"message": "User already exists"}],
                 "sourceIP": "192.0.2.1",
                 "userAgent": "Mozilla/5.0",
                 "timestamp": "2024-02-07T00:00:00Z",
-                "pantherVersion": "1.39.0"
-            }
+                "pantherVersion": "1.39.0",
+            },
+        ),
+        RuleTest(
+            name="Failed GET Action - Should Be Ignored",
+            expected_result=False,
+            log={
+                "actionName": "GET_RULE",
+                "actionResult": "FAILED",
+                "actor": {
+                    "id": "user456",
+                    "type": "USER",
+                    "name": "analyst.user",
+                    "attributes": {"email": "analyst@example.com"},
+                },
+                "errors": [{"message": "Rule not found"}],
+                "sourceIP": "192.0.2.2",
+                "userAgent": "Mozilla/5.0",
+                "timestamp": "2024-02-07T00:00:00Z",
+                "pantherVersion": "1.39.0",
+            },
         ),
         RuleTest(
             name="Failed API Token Creation with Multiple Errors",
@@ -118,19 +144,12 @@ class PantherFailedActions(Rule):
             log={
                 "actionName": "CREATE_API_TOKEN",
                 "actionResult": "FAILED",
-                "actor": {
-                    "id": "user456",
-                    "type": "USER",
-                    "name": "service.account"
-                },
-                "errors": [
-                    {"message": "Invalid permissions specified"},
-                    {"message": "Token name already in use"}
-                ],
+                "actor": {"id": "user456", "type": "USER", "name": "service.account"},
+                "errors": [{"message": "Invalid permissions specified"}, {"message": "Token name already in use"}],
                 "sourceIP": "192.0.2.2",
                 "timestamp": "2024-02-07T00:00:00Z",
-                "pantherVersion": "1.39.0"
-            }
+                "pantherVersion": "1.39.0",
+            },
         ),
         RuleTest(
             name="Successful Action",
@@ -138,15 +157,11 @@ class PantherFailedActions(Rule):
             log={
                 "actionName": "LIST_USERS",
                 "actionResult": "SUCCEEDED",
-                "actor": {
-                    "id": "user789",
-                    "type": "USER",
-                    "name": "readonly.user"
-                },
+                "actor": {"id": "user789", "type": "USER", "name": "readonly.user"},
                 "sourceIP": "192.0.2.3",
                 "timestamp": "2024-02-07T00:00:00Z",
-                "pantherVersion": "1.39.0"
-            }
+                "pantherVersion": "1.39.0",
+            },
         ),
         RuleTest(
             name="Partially Failed Action",
@@ -154,17 +169,11 @@ class PantherFailedActions(Rule):
             log={
                 "actionName": "BULK_UPLOAD_DETECTIONS",
                 "actionResult": "PARTIALLY_FAILED",
-                "actor": {
-                    "id": "user101",
-                    "type": "USER",
-                    "name": "security.analyst"
-                },
-                "errors": [{
-                    "message": "Some detections failed to upload"
-                }],
+                "actor": {"id": "user101", "type": "USER", "name": "security.analyst"},
+                "errors": [{"message": "Some detections failed to upload"}],
                 "sourceIP": "192.0.2.4",
                 "timestamp": "2024-02-07T00:00:00Z",
-                "pantherVersion": "1.39.0"
-            }
-        )
-    ] 
+                "pantherVersion": "1.39.0",
+            },
+        ),
+    ]
