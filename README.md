@@ -136,14 +136,15 @@ The `pypanther` CLI provides essential tools for development:
 
 Use `pypanther <command> --help` for detailed usage.
 
+> **Note**: The `pypanther list` and `pypanther get` commands only reflect the state of your local configuration and the pypanther library. They do not show the current state of rules in your Panther instance. To see what changes will be applied to your Panther instance, use the `pypanther upload` command.
+
 ## 📝 CLI Examples
 
 ### Listing Rules
 List all Slack audit log rules with HIGH severity:
 ```bash
-poetry run pypanther list rules --log-types Slack.AuditLogs --default-severity HIGH
-```
-```
+$ poetry run pypanther list rules --log-types Slack.AuditLogs --default-severity HIGH
+
 +----------------------------------------------------+-----------------+------------------+---------+
 |                         id                         |    log_types    | default_severity | enabled |
 +----------------------------------------------------+-----------------+------------------+---------+
@@ -163,9 +164,8 @@ Total rules: 9
 ### Inspecting Rules
 View the source code and configuration of a specific rule:
 ```bash
-poetry run pypanther get rule Slack.AuditLogs.MFASettingsChanged-prototype
-```
-```
+$ poetry run pypanther get rule Slack.AuditLogs.MFASettingsChanged-prototype
+
 class SlackAuditLogsMFASettingsChanged:
     create_alert = True
     dedup_period_minutes = 60
@@ -188,11 +188,28 @@ class SlackAuditLogsMFASettingsChanged:
 ```
 
 ### Testing Rules
+> **Important**: When writing rules and tests, only use Python libraries that are available in the Panther runtime environment. The following Python libraries are available in addition to those provided by AWS Lambda:
+>
+> | Package | Version | Description | License |
+> |---------|----------|-------------|----------|
+> | **jsonpath-ng** | 1.5.2 | JSONPath Implementation | Apache v2 |
+> | **policyuniverse** | 1.3.3.20210223 | Parse AWS ARNs and Policies | Apache v2 |
+> | **requests** | 2.23.0 | Easy HTTP Requests | Apache v2 |
+>
+> Additionally, you have access to:
+> - Python standard library
+> - **boto3** (provided by AWS Lambda)
+> - **pypanther** library (version defined in your local Poetry environment)
+> - Panther helper functions (as locally defined and using `pypanther`)
+>
+> Using libraries not listed above in your rules may cause them to fail when deployed to Panther.
+>
+> For more details, see the [Available Python Libraries documentation](https://docs.panther.com/detections/rules/python#available-python-libraries).
+
 Run tests on a specific rule with detailed output:
 ```bash
-poetry run pypanther test --verbose --id AWS.ALB.HighVol400s
-```
-```
+$ poetry run pypanther test --verbose --id AWS.ALB.HighVol400s
+
 AWS.ALB.HighVol400s:
    PASS: ELB 400s, no domain
    PASS: ELB 400s, with a domain
@@ -214,7 +231,7 @@ Test Summary:
 ### Uploading Rules
 Upload rules to your Panther instance:
 ```bash
-poetry run pypanther upload --api-token <TOKEN> --api-host https://<API-ENDPOINT>.execute-api.<REGION>.amazonaws.com/v1/public/graphql
+$ poetry run pypanther upload --api-token <TOKEN> --api-host https://<API-ENDPOINT>.execute-api.<REGION>.amazonaws.com/v1/public/graphql
 ```
 
 ## 📊 Supported Features
