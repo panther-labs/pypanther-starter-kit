@@ -1,191 +1,266 @@
-# pypanther-starter-kit
+# PyPanther Starter Kit
 
-`pypanther` is a Python-native detection framework designed to reduce the overhead of rule management, ensure smooth integration with CI/CD workflows, and enhance the effectiveness and actionability of alerts. It is both a library and a CLI, acting as the evolution to our `panther-analysis` and `panther_analysis_tool` repositories.
+`pypanther` is a modern Python-based detection framework that empowers security teams to build, test, and manage detection rules as code. It combines the power of a library with the convenience of a CLI, making it easier than ever to create and maintain high-quality security detections.
 
-`pypanther` streamlines how security teams create, customize, and manage detection rules as code:
-- Stay up-to-date with upstream rule content without a forked repo
-- Flexibly select desired rules based on security use cases
-- Modify Panther-managed rules with overrides, filters, and inheritance
-- Rapidly build, tune, and test custom rules
+### 🚀 Key Features
 
-*Read our [full documentation](https://docs.panther.com/detections/pypanther) to learn about all features of the framework!*
+- **Simple Rule Management**: Maintain detection rules in Python with built-in testing and validation
+- **CI/CD Integration**: Seamlessly integrate detections into your development workflow
+- **Enhanced Alerts**: Generate actionable alerts with rich context and flexible formatting
+- **Rule Customization**: Easily modify and extend existing rules with inheritance and overrides
+- **Upstream Updates**: Stay current with the latest detection content without maintaining a fork
 
-If you are not yet a Panther user, please reach out to us to [get a demo](https://panther.com/product/request-a-demo/)!
+`pypanther` is the evolution of Panther's `panther-analysis` and `panther_analysis_tool` repositories, bringing modern Python practices to detection engineering.
 
-The starer kit serves as a bootstrap for the `pypanther` framework, providing a folder structure and essential components to accelerate the rule development process. **All Panther-managed content lives in the `pypanther` Python package,** so it is not required to maintain a repository fork.
+### 📚 Quick Links
 
-## Example
+- [Full Documentation](https://docs.panther.com/detections/pypanther)
+- [Request a Demo of Panther](https://panther.com/product/request-a-demo/)
 
-Here's an example `main.py` getting all GitHub rules, setting overrides, adding a filter, and registering:
+## 🏗️ Project Structure
+
+The starter kit serves as a bootstrap for the `pypanther` framework, providing a folder structure and essential components to accelerate the rule development process. **All Panther-managed content lives in the `pypanther` Python package,** so it is not required to maintain a repository fork.
+
+### Directory Layout
+
+```
+pypanther-starter-kit/
+├── main.py                 # Main configuration file
+├── content/
+│   ├── rules/             # Customer-defined rules by log type
+│   ├── helpers/           # Reusable helper functions
+│   └── overrides/         # Rule overrides and customizations
+├── pyproject.toml         # Poetry dependencies
+└── Makefile              # Development workflows
+```
+
+## 💡 Example Usage
+
+Importing, overriding, and registering a single upstream rule:
+
+```python
+from pypanther import register
+from pypanther.rules.github import GitHubActionFailed
+
+# Configure and register a single rule
+GitHubActionFailed.override(
+    enabled=True,
+    dedup_period_minutes=60*8,  # 8-hour deduplication window
+)
+GitHubActionFailed.extend(tags=["CorpSec"])
+GitHubActionFailed.MONITORED_ACTIONS = {"main_app": ["code_scanning"]}
+register(GitHubActionFailed)
+```
+
+Mass-applying an exclude filter to all GitHub rules:
 
 ```python
 from pypanther import get_panther_rules, register, LogType, Severity
-from pypanther.rules.github import GitHubActionFailed
 
-# Get all built-in GitHub Audit rules
-git_rules = get_panther_rules(log_types=[LogType.GITHUB_AUDIT])
-
-# Override the default rule values to enable and increase the deduplication window
-GitHubActionFailed.override(
-    enabled=True, dedup_period_minutes=60*8,
+# Get all GitHub Audit rules of Medium/High severity
+rules = get_panther_rules(
+    log_types=[LogType.GITHUB_AUDIT],
+    severity=[Severity.MEDIUM, Severity.HIGH]
 )
 
-# Add a tag along the default tags
-GitHubActionFailed.extend(
-    tags=["CorpSec"],
-)
-
-# Set a required configuration on the rule for higher accuracy
-GitHubActionFailed.MONITORED_ACTIONS = {
-    "main_app": ["code_scanning"],
-}
-
-# Write a new filter function to check for bot activity
+# Define a filter to exclude bot activity
 def github_is_bot_filter(event):
     return bool(event.get("actor_is_bot"))
 
-# Add the filter to all git_rules to exclude bot activity
-for rule in git_rules:
-    rule.extend(exclude_filters=[is_bot])
+# Apply the filter to all rules
+for rule in rules:
+    rule.extend(exclude_filters=[github_is_bot_filter])
 
-# Register and enable rules to be uploaded and tested
-register(git_rules)
+# Register the filtered rules
+register(rules)
 ```
 
-## Getting Started
-
-Clone the repo, install dependencies, and then run tests to ensure everything is set up correctly.
+## 🛠️ Getting Started
 
 ### Prerequisites
 
 Before you begin, make sure you have the following installed:
 
-- **Brew**: Install [Homebrew](https://brew.sh/) if you are on macOS.
-- **Git**: Validate Git is installed by running the following command:
+- **Brew**: Install [Homebrew](https://brew.sh/) if you are on macOS
+- **Git**: Validate Git is installed:
     ```bash
     git --version
     ```
-    If Git is not installed, you can download it from the [official website](https://git-scm.com/) or install it using a package manager like Homebrew on macOS:
+    If not installed, download from [git-scm.com](https://git-scm.com/) or use Homebrew:
     ```bash
     brew install git
     ```
-- **Make**: Install [Make](https://formulae.brew.sh/formula/make) if you don't have it. This project uses a [Makefile](./Makefile) for workflows.
-- **Python**: We recommend using [Pyenv](https://github.com/pyenv/pyenv) for managing Python versions and uninstalling other Python versions to avoid conflicts. You can verify your current active Python configuration with:
-    ```bash
-    which python
-    ```
-    After installing Pyenv, you can set your python version by running the following:
+- **Make**: Install [Make](https://formulae.brew.sh/formula/make) for workflow automation
+- **Python**: We recommend using [Pyenv](https://github.com/pyenv/pyenv) for version management:
     ```bash
     pyenv install 3.11
     pyenv global 3.11
     ```
-- **Poetry**: Install Poetry version 1.8.0 and ensure it uses the correct Python version with `poetry env use path/to/python3.11`. Follow the [installation guide](https://python-poetry.org/docs/) and use [pipx](https://pipx.pypa.io/stable/installation/). The starter kit includes a pre-configured [pyproject.toml](./pyproject.toml). Run all Python commands inside the Poetry shell, including in your CI pipeline. More details [here](https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment).
+- **Poetry**: Install Poetry via [pipx](https://pipx.pypa.io/stable/installation/):
+    ```bash
+    pipx install poetry
+    poetry env use path/to/python3.11
+    ```
 
-### Starter Kit Setup
+### Quick Start
 
-Follow these steps to configure your local development environment:
-
-1. **Clone the repo**
+1. **Clone and enter the repo**
     ```bash
     git clone git@github.com:panther-labs/pypanther-starter-kit.git
     cd pypanther-starter-kit
     ```
 
-2. **Install dependencies and set up environment**
-
+2. **Install dependencies**
     ```bash
     make install
     ```
 
-3. **Validate installation**
-
+3. **Run tests**
     ```bash
     make test
     ```
 
-    *Note: When developing and running tests, prefix commands with `poetry run ...`*
+*Note: When developing and running tests, prefix commands with `poetry run ...`*
 
-### `pypanther` CLI
+## 🔧 CLI Commands
 
-The `pypanther` CLI is a command-line tool designed to build, test, and upload to a Panther instance. Below are the available commands:
+The `pypanther` CLI provides essential tools for development:
 
-- **version**: Display the current version of the `pypanther` CLI.
-- **list**: List managed or registered content.
-    ```bash
-    pypanther list rules --log-types AWS.CloudTrail --attributes id enabled tags
-    ```
-- **get**: Retrieve the source code of a specific rule ID including any applied overrides.
-    ```bash
-    pypanther get rule <id>
-    ```
-- **test**: Run tests on all your rules, providing a summary of results.
-    ```bash
-    pypanther test --tags Exfiltration
-    ```
-- **upload**: Upload your rules to Panther.
-    ```bash
-    pypanther upload --verbose --output json
-    ```
+| Command | Description | Example |
+|---------|-------------|---------|
+| `version` | Display CLI version | `pypanther version` |
+| `list` | List managed content | `pypanther list rules --log-types AWS.CloudTrail` |
+| `get` | Retrieve rule source | `pypanther get rule <id>` |
+| `test` | Run rule tests | `pypanther test --tags Exfiltration` |
+| `upload` | Upload to Panther | `pypanther upload --verbose` |
 
-Use `pypanther <command> --help` for more details on each command.
+Use `pypanther <command> --help` for detailed usage.
 
-## Trying PyPanther
+> **Note**: The `pypanther list` and `pypanther get` commands only reflect the state of your local configuration and the pypanther library. They do not show the current state of rules in your Panther instance. To see what changes will be applied to your Panther instance, use the `pypanther upload` command.
 
-### Supported Content Types
+## 📝 CLI Examples
 
-`pypanther` is under active development (available in closed beta for select customers) and currently supports the following analysis types:
+### Listing Rules
+List all Slack audit log rules with HIGH severity:
+```bash
+$ poetry run pypanther list rules --log-types Slack.AuditLogs --default-severity HIGH
 
-| Analysis Type       | Supported           |
-|---------------------|---------------------|
-| Streaming Rules     | :white_check_mark:  |
-| Data Models         | :white_check_mark:  |
-| Helper Functions    | :white_check_mark:  |
-| Built-in Content    | :white_check_mark:  |
-| Scheduled Rules     | :construction:      |
-| Lookups/Enrichments | :construction:      |
-| Saved Queries       | :construction:      |
-| Policies            | :construction:      |
-| Correlation Rules   | :construction:      |
++----------------------------------------------------+-----------------+------------------+---------+
+|                         id                         |    log_types    | default_severity | enabled |
++----------------------------------------------------+-----------------+------------------+---------+
+|       Slack.AuditLogs.DLPModified-prototype        | Slack.AuditLogs |       HIGH       |   True  |
+|     Slack.AuditLogs.EKMConfigChanged-prototype     | Slack.AuditLogs |       HIGH       |   True  |
+|  Slack.AuditLogs.EKMSlackbotUnenrolled-prototype   | Slack.AuditLogs |       HIGH       |   True  |
+| Slack.AuditLogs.IDPConfigurationChanged-prototype  | Slack.AuditLogs |       HIGH       |   True  |
+| Slack.AuditLogs.LegalHoldPolicyModified-prototype  | Slack.AuditLogs |       HIGH       |   True  |
+|    Slack.AuditLogs.MFASettingsChanged-prototype    | Slack.AuditLogs |       HIGH       |   True  |
+| Slack.AuditLogs.PrivateChannelMadePublic-prototype | Slack.AuditLogs |       HIGH       |   True  |
+|    Slack.AuditLogs.SSOSettingsChanged-prototype    | Slack.AuditLogs |       HIGH       |   True  |
+| Slack.AuditLogs.UserPrivilegeEscalation-prototype  | Slack.AuditLogs |       HIGH       |   True  |
++----------------------------------------------------+-----------------+------------------+---------+
+Total rules: 9
+```
 
-*Note: `packs` have been replaced by the `main.py` and the `get_panther_rules` function.*
+### Inspecting Rules
+View the source code and configuration of a specific rule:
+```bash
+$ poetry run pypanther get rule Slack.AuditLogs.MFASettingsChanged-prototype
 
-As more analysis types are supported, you can declare and upload using `pypanther` with the following guidance:
-1. Make sure you are on the latest `pypanther-starter-kit` and `pypanther` library by running `make update`
-2. Customize your `main.py` to include panther-managed rules or custom rules. When testing, we recommend starting with only 3-5 rules.
-3. Use `pypanther upload` to validate alerts are firing and other content is as you expect it.
+class SlackAuditLogsMFASettingsChanged:
+    create_alert = True
+    dedup_period_minutes = 60
+    display_name = Slack MFA Settings Changed
+    enabled = True
+    log_types = ['Slack.AuditLogs']
+    id = Slack.AuditLogs.MFASettingsChanged-prototype
+    summary_attributes = ['p_any_ip_addresses', 'p_any_emails']
+    threshold = 1
+    tags = ['Slack', 'Defense Evasion', 'Modify Authentication Process', 'Multi-Factor Authentication']
+    reports = {'MITRE ATT&CK': ['TA0005:T1556.006']}
+    default_severity = HIGH
+    default_description = Detects changes to Multi-Factor Authentication requirements
+    default_destinations = None
+    default_reference = https://slack.com/intl/en-gb/help/articles/204509068-Set-up-two-factor-authentication
+    rule = 
+    def rule(self, event):
+        return event.get("action") == "pref.two_factor_auth_changed"
+    ...
+```
 
-`pypanther` content mirrors `panther-analysis` with the addition of a `-prototype` suffix. You can use this to distinguish between v1 and v2 rules. Once `pypanther` is generally available, we will publish our migration tool and guidance to make the cutover as smooth as possible!
+### Testing Rules
+> **Important**: When writing rules and tests, only use Python libraries that are available in the Panther runtime environment. The following Python libraries are available in addition to those provided by AWS Lambda:
+>
+> | Package | Version | Description | License |
+> |---------|----------|-------------|----------|
+> | **jsonpath-ng** | 1.5.2 | JSONPath Implementation | Apache v2 |
+> | **policyuniverse** | 1.3.3.20210223 | Parse AWS ARNs and Policies | Apache v2 |
+> | **requests** | 2.23.0 | Easy HTTP Requests | Apache v2 |
+>
+> Additionally, you have access to:
+> - Python standard library
+> - **boto3** (provided by AWS Lambda)
+> - **pypanther** library (version defined in your local Poetry environment)
+> - Panther helper functions (as locally defined and using `pypanther`)
+>
+> Using libraries not listed above in your rules may cause them to fail when deployed to Panther.
+>
+> For more details, see the [Available Python Libraries documentation](https://docs.panther.com/detections/rules/python#available-python-libraries).
 
-### Required File Structure
+Run tests on a specific rule with detailed output:
+```bash
+$ poetry run pypanther test --verbose --id AWS.ALB.HighVol400s
 
-`pypanther`'s primary configuration file `main.py` must be located in the root directory, and all content is organized into several key directories under the `content/` folder:
+AWS.ALB.HighVol400s:
+   PASS: ELB 400s, no domain
+   PASS: ELB 400s, with a domain
+     - Title: High volume of web port 4xx errors to [example.com] in account [112233445566]
+     - Alert context: {'elb': 'app/web/22222f55555e618c', 'actionsExecuted': ['forward'], 'source_ip': None, 'target_port': 80, 'elb_status_code': 429, 'target_status_code': 429, 'user_agent': None, 'request_url': 'https://ec2-55-22-444-111.us-east-1.compute.amazonaws.com:443/pagekit/index.php', 'mitre_technique': 'Endpoint Denial of Service', 'mitre_tactic': 'Impact'}
+   PASS: ELB 200s, with a domain
 
-- **`main.py`**: This is the main file of the repository. It controls the entire configuration for `pypanther`. The `main.py` file orchestrates which rules are imported and overridden with custom configurations.
+Test Summary:
+   Skipped rules:   0 
+   Passed rules:    1 
+   Failed rules:    0 
+   Total rules:     1
 
-- **`content/rules/`**: This directory contains customer-defined rules that are grouped by log type family. Each folder may also include longer sample events for `RuleTest`s.
+   Passed tests:    3
+   Failed tests:    0
+   Total tests:     3
+```
 
-- **`content/helpers/`**: The `helpers/` directory is home to generic helper functions. These functions are designed to be reusable and can be utilized either in rules or filters. Their purpose is to simplify the code in the main logic by abstracting common tasks into functions.
+### Uploading Rules
+Upload rules to your Panther instance:
+```bash
+$ poetry run pypanther upload --api-token <TOKEN> --api-host https://<API-ENDPOINT>.execute-api.<REGION>.amazonaws.com/v1/public/graphql
+```
 
-- **`content/overrides/`**: The `overrides/` directory is dedicated for managing your overrides to built-in rules. We recommend defining new rule override functions (like title or severity), attribute overrides (like include_filters), and mass-updates using for loops using the `apply_overrides()` function. Check the `content/rules` folder for an example.
+## 📊 Supported Features
 
-### Setting Your Configuration
+| Feature | Status |
+|---------|---------|
+| Streaming Rules | ✅ |
+| Data Models | ✅ |
+| Helper Functions | ✅ |
+| Built-in Content | ✅ |
+| Manage Custom Schemas | ✅ |
+| Scheduled Rules | 🚧 |
+| Lookups/Enrichments | 🚧 |
+| Saved Queries | 🚧 |
+| Policies | 🚧 |
+| Correlation Rules | 🚧 |
 
-The `main.py` (and all other content in this repository) serves as examples to build your configuration. Read the [full documentation](https://docs.panther.com/detections/pypanther) to learn all of the paradigms.
+*Note: `packs` have been replaced by `main.py` and `get_panther_rules`.*
 
-To interact with your Panther instance via `pypanther upload`, you'll need to set the `PANTHER_API_TOKEN` and `PANTHER_API_HOST` environment variables either using `.env` files or `export`s.
+## 🔄 CI/CD Workflows
 
-## CI/CD
+An example [GitHub workflow](.github/workflows/upload.yml) is provided for automated deployments:
 
-An example [GitHub workflow](https://github.com/panther-labs/pypanther-starter-kit/blob/main/.github/workflows/upload.yml) is provided to upload your configured ruleset to your Panther instance when PRs are merged to `release` branch.  `API_HOST` and `API_TOKEN` must be configured in your GitHub repository secrets.
+1. Develop and test rules in `main` branch
+2. Create PR from `main` to `release` when ready to deploy
+3. Merge to `release` to automatically update Panther
 
-An example process might look like this:
+Configure `API_HOST` and `API_TOKEN` in your GitHub repository secrets.
 
-- PRs are merged to `main` as new rules are developed and existing rules are tuned.
+## 📄 License
 
-- When you are ready to update your Panther instance, create a PR from `main` to `release`.
-
-- Merging the PR to `release` automatically updates Panther, making the `release` branch the single source of truth for your Panther configuration!
-
-## License
-
-This project is licensed under the [Apache 2.0 License] - see the LICENSE.txt file for details.
+This project is licensed under the [Apache 2.0 License](LICENSE.txt).
