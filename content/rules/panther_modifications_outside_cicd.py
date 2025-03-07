@@ -101,7 +101,7 @@ class PantherRuleModificationOutsideCICD(Rule):
             expected_result=False,
             log={
                 "actionName": "BULK_UPLOAD_DETECTIONS",
-                "actor": {"name": "new", "email": "cicd@company.com"},
+                "actor": {"name": "api-token-cicd", "email": "cicd@company.com"},
                 "sourceIP": "192.0.2.2",
                 "timestamp": "2024-03-20T00:00:00Z",
                 "actionResult": "SUCCEEDED",
