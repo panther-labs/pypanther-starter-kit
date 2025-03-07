@@ -4,50 +4,13 @@ from pypanther import LogType, Rule, RuleTest, Severity
 
 from content.rules.sample_logs import sample_alb_log
 
-aws_alb_high_vol_400s_tests = [
-    RuleTest(
-        name="ELB 400s, no domain",
-        expected_result=False,
-        log=sample_alb_log,
-    ),
-    RuleTest(
-        name="ELB 400s, with a domain",
-        expected_result=True,
-        expected_title="High volume of web port 4xx errors to [example.com] in account [112233445566]",
-        expected_alert_context={
-            "elb": "app/web/22222f55555e618c",
-            "actionsExecuted": ["forward"],
-            "source_ip": None,
-            "target_port": 80,
-            "elb_status_code": 429,
-            "target_status_code": 429,
-            "user_agent": None,
-            "request_url": "https://ec2-55-22-444-111.us-east-1.compute.amazonaws.com:443/pagekit/index.php",
-            "mitre_technique": "Endpoint Denial of Service",
-            "mitre_tactic": "Impact",
-        },
-        log=sample_alb_log | {"domainName": "example.com"},
-    ),
-    RuleTest(
-        name="ELB 200s, with a domain",
-        expected_result=False,
-        log=sample_alb_log
-        | {
-            "domainName": "example.com",
-            "elbStatusCode": 200,
-            "targetStatusCode": 200,
-        },
-    ),
-]
-
 
 class AWSALBHighVol400s(Rule):
     id = "AWS.ALB.HighVol400s"
     enabled = False
     log_types = [LogType.AWS_ALB]
     default_severity = Severity.MEDIUM
-    # 10 matches per minute
-    threshold = 50
+    threshold = 50 # 10 matches per minute
     dedup_period_minutes = 5
     default_description = "This rule tracks abuse to web ports via AWS Load Balancers"
     reports = {"MITRE ATT&CK": ["TA0010:T1499"]}  # Impact: Endpoint Denial of Service
@@ -59,7 +22,6 @@ class AWSALBHighVol400s(Rule):
         "Check if the source IP is part of a known botnet. "
         "Check if this volume of 400 errors is typical or not for that load balancer. "
     )
-    tests = aws_alb_high_vol_400s_tests
 
     # 429 Too Many Requests, 400 Bad Request, 403 Forbidden
     STATUS_CODES = {429, 400, 403}
@@ -92,3 +54,39 @@ class AWSALBHighVol400s(Rule):
             "mitre_technique": "Endpoint Denial of Service",
             "mitre_tactic": "Impact",
         }
+
+    tests = [
+        RuleTest(
+            name="ELB 400s, no domain",
+            expected_result=False,
+            log=sample_alb_log,
+        ),
+        RuleTest(
+            name="ELB 400s, with a domain",
+            expected_result=True,
+            expected_title="High volume of web port 4xx errors to [example.com] in account [112233445566]",
+            expected_alert_context={
+                "elb": "app/web/22222f55555e618c",
+                "actionsExecuted": ["forward"],
+                "source_ip": None,
+                "target_port": 80,
+                "elb_status_code": 429,
+                "target_status_code": 429,
+                "user_agent": None,
+                "request_url": "https://ec2-55-22-444-111.us-east-1.compute.amazonaws.com:443/pagekit/index.php",
+                "mitre_technique": "Endpoint Denial of Service",
+                "mitre_tactic": "Impact",
+            },
+            log=sample_alb_log | {"domainName": "example.com"},
+        ),
+        RuleTest(
+            name="ELB 200s, with a domain",
+            expected_result=False,
+            log=sample_alb_log
+            | {
+                "domainName": "example.com",
+                "elbStatusCode": 200,
+                "targetStatusCode": 200,
+            },
+        ),
+    ]
