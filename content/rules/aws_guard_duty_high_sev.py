@@ -15,11 +15,10 @@ def guard_duty_discovery_filter(event):
     return event.get("type").startswith("Discovery")
 
 
-class GuardDutyHighSeverity(AWSGuardDutyHighSeverityFinding):
-    include_filters = [guard_duty_sensitive_service_filter]
-    exclude_filters = [guard_duty_discovery_filter]
-
-    tests = [
+AWSGuardDutyHighSeverityFinding.override(
+    include_filters=[guard_duty_sensitive_service_filter],
+    exclude_filters=[guard_duty_discovery_filter],
+    tests=[
         RuleTest(
             name="UnauthorizedAccess high-sev finding, from dynamodb",
             expected_result=True,
@@ -30,4 +29,5 @@ class GuardDutyHighSeverity(AWSGuardDutyHighSeverityFinding):
                 "title": "Credentials that were created exclusively for an EC2 instance through an Instance launch role are being used from another account within AWS.",
             },
         )
-    ]
+    ],
+)

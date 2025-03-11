@@ -40,7 +40,7 @@ class AWSALBHighVol400s(Rule):
     enabled = True
     log_types = [LogType.AWS_ALB]
     default_severity = Severity.MEDIUM
-    threshold = 50 # 10 matches per minute
+    threshold = 50  # 10 matches per minute
     dedup_period_minutes = 5
     default_description = "This rule tracks abuse to web ports via AWS Load Balancers"
     reports = {"MITRE ATT&CK": ["TA0010:T1499"]}  # Impact: Endpoint Denial of Service

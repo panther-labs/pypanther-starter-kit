@@ -22,6 +22,10 @@ def account_lookup_by_id(account_id):
     return "Account ID not found in lookup. Please update helpers.CLOUD_ACCOUNTS"
 
 
+def prod_account_filter(event):
+    return event.get("recipientAccountId") in prod_account_ids
+
+
 # Pre-calculates a set of IDs to be used in overrides and filters
 prod_account_ids = {account["accountID"] for account in CLOUD_ACCOUNTS["Production"]}
 dev_accounts_ids = {account["accountID"] for account in CLOUD_ACCOUNTS["Development"]}
