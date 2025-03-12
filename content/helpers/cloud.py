@@ -1,15 +1,15 @@
 # The mapping of Cloud account environments, IDs, and names.
+# Change these values to apply to your environment.
 CLOUD_ACCOUNTS = {
     "Production": [
-        # Change these values to apply to your environment
         {"accountID": "988776655444", "accountName": "Blue"},
         {"accountID": "444556677788", "accountName": "Red"},
     ],
     "Development": [
-        # {"accountID": "111111111111", "accountName": "MyDevAccount"},
+        {"accountID": "111111111111", "accountName": "MyDevAccount"},
     ],
     "Test": [
-        # {"accountID": "987654321098", "accountName": "MyTestAccount"},
+        {"accountID": "222222222222", "accountName": "MyTestAccount"},
     ],
 }
 

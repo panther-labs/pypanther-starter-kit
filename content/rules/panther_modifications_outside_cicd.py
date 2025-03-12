@@ -2,12 +2,12 @@ from pypanther import LogType, Rule, RuleTest, Severity
 
 
 class PantherRuleModificationOutsideCICD(Rule):
-    id = "Custom.PantherAudit.RuleModificationOutsideCICD"
+    id = "PantherAudit.RuleModification.OutsideCICD"
     display_name = "Panther Rule Modified Outside CICD"
     log_types = [LogType.PANTHER_AUDIT]
     enabled = True
     dedup_period_minutes = 60
-    tags = ["Panther", "CICD", "Change Management", "Security"]
+    tags = ["CICD", "Change Management"]
     default_severity = Severity.HIGH
     default_reference = "https://docs.panther.com/guides/ci-cd"
     default_description = (

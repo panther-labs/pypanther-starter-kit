@@ -34,25 +34,36 @@ pypanther-starter-kit/
 └── Makefile              # Development workflows
 ```
 
-## 💡 Example Usage
+## 💡 Usage
 
-Importing, overriding, and registering a single upstream rule:
+### Overrides (recommended for simple changes):
 
 ```python
 from pypanther import register
 from pypanther.rules.github import GitHubActionFailed
 
-# Configure and register a single rule
+# Simple configuration changes
 GitHubActionFailed.override(
     enabled=True,
-    dedup_period_minutes=60*8,  # 8-hour deduplication window
+    dedup_period_minutes=60*8
 )
-GitHubActionFailed.extend(tags=["CorpSec"])
-GitHubActionFailed.MONITORED_ACTIONS = {"main_app": ["code_scanning"]}
+
+# Adding or modifying attributes
+GitHubActionFailed.extend(
+    tags=["CorpSec"],
+    reference="https://company.docs/github-actions"
+)
+
 register(GitHubActionFailed)
 ```
 
-Mass-applying an exclude filter to all GitHub rules:
+Best for:
+- Simple configuration changes (enabled, severity, dedup period, etc.)
+- Adding or modifying attributes (tags, references, descriptions)
+- Quick one-off customizations
+- Changes that don't require complex logic modifications
+
+### Bulk Changes (recommended for broad configuration updates)
 
 ```python
 from pypanther import get_panther_rules, register, LogType, Severity
@@ -74,6 +85,49 @@ for rule in rules:
 # Register the filtered rules
 register(rules)
 ```
+
+Best for:
+- Applying filters and configurations across many rules
+- Making changes based on log type or severity level
+- Batch updates to multiple detection rules
+
+### Using Inheritance (recommended for complex changes):
+
+```python
+from pypanther import register
+from pypanther.rules.github import GitHubActionFailed
+
+class CustomGitHubActionFailed(GitHubActionFailed):
+    """Enhanced GitHub Action failure detection"""
+    
+    # Override class attributes
+    enabled = True
+    dedup_period_minutes = 60*8
+    
+    # Custom constants
+    ALLOWED_FAILURES = {"lint", "format"}
+    
+    # Override the rule logic
+    def rule(self, event):
+        # First check the parent rule's conditions
+        if not super().rule(event):
+            return False
+            
+        # Add custom logic
+        action_name = event.get("action_name")
+        return action_name not in self.ALLOWED_FAILURES
+
+register(CustomGitHubActionFailed)
+```
+
+Best for:
+- Complex modifications to rule logic
+- Adding new class attributes or methods
+- Maintaining multiple variants of a rule
+- Rules that need extensive customization
+- Reusable rule patterns across your organization
+
+> Note: While both overrides and inheritance can achieve similar results, choose inheritance when you need to maintain and version control your customizations as distinct rule implementations. Use override methods for simpler, configuration-based changes that don't require new logic outside of simple filters.
 
 ## 🛠️ Getting Started
 
@@ -141,7 +195,7 @@ Use `pypanther <command> --help` for detailed usage.
 ## 📝 CLI Examples
 
 ### Listing Rules
-List all Slack audit log rules with HIGH severity:
+List all registered Slack audit log rules with HIGH severity:
 ```bash
 $ poetry run pypanther list rules --log-types Slack.AuditLogs --default-severity HIGH
 
@@ -159,6 +213,38 @@ $ poetry run pypanther list rules --log-types Slack.AuditLogs --default-severity
 | Slack.AuditLogs.UserPrivilegeEscalation-prototype  | Slack.AuditLogs |       HIGH       |   True  |
 +----------------------------------------------------+-----------------+------------------+---------+
 Total rules: 9
+```
+
+List all panther-managed Slack audit log rules:
+```bash
+poetry run pypanther list rules --log-types Slack.AuditLogs --managed
++----------------------------------------------------------+-----------------+------------------+---------+
+|                            id                            |    log_types    | default_severity | enabled |
++----------------------------------------------------------+-----------------+------------------+---------+
+|       Slack.AuditLogs.AppAccessExpanded-prototype        | Slack.AuditLogs |      MEDIUM      |   True  |
+|            Slack.AuditLogs.AppAdded-prototype            | Slack.AuditLogs |      MEDIUM      |   True  |
+|           Slack.AuditLogs.AppRemoved-prototype           | Slack.AuditLogs |      MEDIUM      |   True  |
+|         Slack.AuditLogs.ApplicationDoS-prototype         | Slack.AuditLogs |     CRITICAL     |   True  |
+|          Slack.AuditLogs.DLPModified-prototype           | Slack.AuditLogs |       HIGH       |   True  |
+|        Slack.AuditLogs.EKMConfigChanged-prototype        | Slack.AuditLogs |       HIGH       |   True  |
+|     Slack.AuditLogs.EKMSlackbotUnenrolled-prototype      | Slack.AuditLogs |       HIGH       |   True  |
+|         Slack.AuditLogs.EKMUnenrolled-prototype          | Slack.AuditLogs |     CRITICAL     |   True  |
+|    Slack.AuditLogs.IDPConfigurationChanged-prototype     | Slack.AuditLogs |       HIGH       |   True  |
+|   Slack.AuditLogs.InformationBarrierModified-prototype   | Slack.AuditLogs |      MEDIUM      |   True  |
+|       Slack.AuditLogs.IntuneMDMDisabled-prototype        | Slack.AuditLogs |     CRITICAL     |   True  |
+|    Slack.AuditLogs.LegalHoldPolicyModified-prototype     | Slack.AuditLogs |       HIGH       |   True  |
+|       Slack.AuditLogs.MFASettingsChanged-prototype       | Slack.AuditLogs |       HIGH       |   True  |
+|           Slack.AuditLogs.OrgCreated-prototype           | Slack.AuditLogs |       LOW        |   True  |
+|           Slack.AuditLogs.OrgDeleted-prototype           | Slack.AuditLogs |      MEDIUM      |   True  |
+|       Slack.AuditLogs.PassthroughAnomaly-prototype       | Slack.AuditLogs |       LOW        |   True  |
+| Slack.AuditLogs.PotentiallyMaliciousFileShared-prototype | Slack.AuditLogs |     CRITICAL     |   True  |
+|    Slack.AuditLogs.PrivateChannelMadePublic-prototype    | Slack.AuditLogs |       HIGH       |   True  |
+|       Slack.AuditLogs.SSOSettingsChanged-prototype       | Slack.AuditLogs |       HIGH       |   True  |
+|    Slack.AuditLogs.ServiceOwnerTransferred-prototype     | Slack.AuditLogs |     CRITICAL     |   True  |
+|   Slack.AuditLogs.UserPrivilegeChangedToUser-prototype   | Slack.AuditLogs |      MEDIUM      |   True  |
+|    Slack.AuditLogs.UserPrivilegeEscalation-prototype     | Slack.AuditLogs |       HIGH       |   True  |
++----------------------------------------------------------+-----------------+------------------+---------+
+Total rules: 22
 ```
 
 ### Inspecting Rules
