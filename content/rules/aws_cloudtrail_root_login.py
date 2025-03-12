@@ -1,4 +1,4 @@
-from pypanther import LogType, Rule, RuleTest, Severity
+from pypanther import RuleTest, Severity
 from pypanther.rules.aws_cloudtrail import AWSConsoleRootLogin
 
 from content.helpers.cloud import account_lookup_by_id, prod_account_ids

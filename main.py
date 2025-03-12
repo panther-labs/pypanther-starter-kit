@@ -1,4 +1,4 @@
-from pypanther import get_panther_rules, get_rules, register
+from pypanther import get_rules, register
 
 from content import rules
 
