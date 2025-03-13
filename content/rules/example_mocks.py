@@ -27,7 +27,7 @@ class MockTestRule(Rule):
         return self.INSIDE
 
     def rule(self, event):
-        return self.INSIDE != []
+        return self.inside(event) != []
 
     tests = [
         RuleTest(
