@@ -1,0 +1,4 @@
+schema: Custom.SampleSchema1
+fields:
+  - name: fieldname
+    type: string
