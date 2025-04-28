@@ -1,0 +1,13 @@
+name: Sample Schema test
+logType: Custom.SampleSchema
+input: |
+  {
+    "fieldname": "foo"
+  }
+result: |
+  {
+    "fieldname": "foo",
+    "p_event_time": "2025-01-07T17:53:36.549123000Z",
+    "p_log_type": "Custom.SampleSchema",
+    "p_parse_time": "2025-01-07T18:20:10.825974222Z"
+  }
