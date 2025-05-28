@@ -25,4 +25,4 @@ jobs:
         run: poetry run pypanther test
       - name: pypanther upload
         run: |
-          poetry run pypanther upload --api-host ${{ env.API_HOST }} --api-token ${{ env.API_TOKEN }} --confirm
+          poetry run pypanther upload --api-host ${{ env.API_HOST }} --api-token ${{ env.API_TOKEN }} --skip-summary
